@@ -11,7 +11,7 @@ from math import *
 import matplotlib.pyplot as plt
 import csv
 
-file = open('risk_distance_best_tau.csv', 'w')
+file = open('risk_distance_H_vs_alpha.csv', 'w')
 
 class graph():
     def __init__(self, tau, alpha):
@@ -69,14 +69,16 @@ class graph():
         ret = self.recursive_next(edge, path, visited, start, vertex1, vertex2)
         return ret
 
-def submodular_fun(S, e, f, tau, Hf):
+def submodular_fun(e, f, tau, Hf):
     global G
-    mu, sigma = 0, (len(G.points)/(sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)))
+    mu, sigma = sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)/(len(G.tour)+1), 50*(len(G.tour)+1)/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
     expectationfUe = 0
     fUe = 0
     for i in range(100):
-        sample = np.random.normal(mu, sigma)
-        t = f + (1+sample)*sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)/((len(G.tour)+1)**2)
+        sample = -10
+        while sample<0:
+            sample = np.random.normal(mu, sigma)
+        t = f + sample
         if t-tau <0:
             expectationfUe += 0
         else:
@@ -86,74 +88,68 @@ def submodular_fun(S, e, f, tau, Hf):
     fUe /= 100
     HfUe = tau + expectationfUe/(1-G.alpha)
     f_marginal = HfUe - Hf
-    # print("EX", f, fUe, Hf, HfUe, f_marginal)
     return f_marginal, HfUe, fUe
 
-G = graph(30, 0.0)
+G = graph(200, 0.0)
 
 def main():
     print("Number of nodes")
-    n = 10 #int(input())
+    n = 10
     for i in range(n):
         for j in range(i+1,n):
             G.edges.append([i, j])
+    G.alpha = 0.0
+    G.points = [[26, 15], [93, 44], [29, 95], [28, 89], [53, 77], [67, 6], [59, 84], [49, 47], [70, 88], [99, 22]]
+    # G.rand_vert_init(n)
     # print(G.points)
-    o=0
-    i=0
-    for o in range(1):
-        G.alpha = 0.0
-        G.points = []
-        G.rand_vert_init(n)
-        for i in range(9):
-            G.alpha += 0.1
-            G.all_tour_costs = []
-            G.all_tau = []
+    # exit()
+    for i in range(90):
+        G.alpha += 0.01
+        G.all_tour_costs = []
+        G.all_tau = []
+        G.tour = []
+        G.all_tour = []
+        H_min = 10000
+        for tau1 in range(0, G.tau*10, 1):
+            subtour = [0]*n
+            tau = float(tau1/10)
             G.tour = []
-            G.all_tour = []
-            print("Alpha", G.alpha)
-            for tau1 in range(0, G.tau*100, 5):
-                subtour = [0]*n
-                tau = float(tau1/100)
-                # print(tau)
-                G.tour = []
-                edges = list(G.edges)
-                Hf = tau
-                f = 0
-                f_marginal = 0
-                while edges!=[] and len(G.tour)<=n:
-                    p = -1
-                    fm = []
-                    for e in range(len(edges)):
-                        f_marginal, HfUe, fUe = submodular_fun(G.tour, edges[e], f, tau, Hf)
-                        fm.append([f_marginal, HfUe, fUe, e])
-                    # print("------------------------")
-                    fm.sort()
-                    p = fm[0][3]
-                    if subtour[edges[p][0]]<2 and subtour[edges[p][1]]<2:
-                        G.tour.append(edges[p])
-                        subtour[edges[p][0]]+=1
-                        subtour[edges[p][1]]+=1
-                        ret = G.DFS()
-                        if ret == False and len(G.tour)<n:
-                            G.tour.pop(len(G.tour)-1)
-                            subtour[edges[p][0]]-=1
-                            subtour[edges[p][1]]-=1
-                        else:
-                            f_marginal = fm[0][0]
-                            Hf = fm[0][1]
-                            f = fm[0][2]
-                    edges.pop(p)
-                if G.tour != []:
-                    G.all_tour.append(G.tour)
-                    G.all_tour_costs.append(Hf)
-                    G.all_tau.append(tau)
-                # print("HF", Hf)
-                # # file.write('%f;' % float(f))
-                # file.write('%f;' % float(Hf))
-            min(G.all_tour_costs)
-            print("HF", min(G.all_tour_costs))
-            file.write('%f;' % float(min(G.all_tour_costs)))
-            file.write('\n')
+            edges = list(G.edges)
+            Hf = tau
+            f = 0
+            f_marginal = 0
+            while edges!=[] and len(G.tour)<=n:
+                p = -1
+                fm = []
+                for e in range(len(edges)):
+                    f_marginal, HfUe, fUe = submodular_fun(edges[e], f, tau, Hf)
+                    fm.append([f_marginal, HfUe, fUe, e])
+                fm.sort()
+                p = fm[0][3]
+                if subtour[edges[p][0]]<2 and subtour[edges[p][1]]<2:
+                    G.tour.append(edges[p])
+                    subtour[edges[p][0]]+=1
+                    subtour[edges[p][1]]+=1
+                    ret = G.DFS()
+                    if ret == False and len(G.tour)<n:
+                        G.tour.pop(len(G.tour)-1)
+                        subtour[edges[p][0]]-=1
+                        subtour[edges[p][1]]-=1
+                    else:
+                        f_marginal = fm[0][0]
+                        Hf = fm[0][1]
+                        f = fm[0][2]
+                edges.pop(p)            # G.all_tour_costs.append(Hf)
+
+            if Hf<H_min:
+                H_min = Hf
+            print("HF", Hf, tau)
+        file.write('%f;' % float(H_min))
+
+
+
+            # file.write('%f;' % float(min(G.all_tour_costs)))
+            # file.write('\n')
     # pos = G.all_tour_costs.index(min(G.all_tour_costs))
     # f = G.all_tour_costs[pos]
     # G.tour = G.all_tour[pos]

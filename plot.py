@@ -1,12 +1,12 @@
 import matplotlib as plt
 from mpl_toolkits import mplot3d
 import csv
-import seaborn as sns
+# import seaborn as sns
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import matplotlib.pyplot as plt
 
-tau_init = 20
+# tau_init = 20
 tau = []
 H1 = []
 H2 = []
@@ -20,26 +20,20 @@ H9 = []
 temp = ''
 alpha = 0.9
 
-with open('risk_distance_best_tau.csv', 'r') as file:
+with open('risk_distance_H_vs_alpha.csv', 'r') as file:
     reader = csv.reader(file)
     c=0
     flag = 0
     for row in reader:
         c+=1
         num=-1
-        # if c>10:
-        #     break
         for r in row:
-            print("R",r)
-            # temp = float(r)
             for t in r:
                 if t!=';' and t!='\n' and t!='':
-                    print("T", t)
                     temp = temp + t
                 else:
                     num+=1
                     temp = float(temp)
-                    print("Temp", temp)
                     if c==1:
                         if flag==0:
                             H1.append(temp)
@@ -91,10 +85,11 @@ with open('risk_distance_best_tau.csv', 'r') as file:
             flag=1
 
 tau_init = 0
-tau = []
+tau = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+print(H1)
 for i in range(len(H1)):
-    tau.append(tau_init)
-    tau_init+=1
+    # tau.append(tau_init)
+    # tau_init+=0.1
     H1[i]/=1
     # H2[i]/=1
     # H3[i]/=1
@@ -107,7 +102,7 @@ for i in range(len(H1)):
 
 fig, ax = plt.subplots()
 
-ax.plot(tau, H1, label = 'alpaha=0.1')
+plt.scatter(tau, H1, marker='o')
 # ax.plot(tau, H2, label = 'alpaha=0.2')
 # ax.plot(tau, H3, label = 'alpaha=0.3')
 # ax.plot(tau, H4, label = 'alpaha=0.4')
