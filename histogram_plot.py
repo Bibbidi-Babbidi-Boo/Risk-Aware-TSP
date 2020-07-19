@@ -66,7 +66,7 @@ with open('risk_distance_p(y)_vs_f.csv', 'r') as file:
 # print(H3)
 # print(max(H1), max(H2), max(H3), max(H4), max(H5), max(H6), max(H7), max(H8), max(H9))
 fig, ax = plt.subplots()
-xs = np.linspace(500,1500)
+xs = np.linspace(100,1500)
 #
 # density = gaussian_kde(H1)
 # density._compute_covariance()

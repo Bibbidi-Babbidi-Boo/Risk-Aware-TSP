@@ -72,7 +72,7 @@ class graph():
 def find_good_path(e, f):
     global G
     mu = sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
-    sigma =  100/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+    sigma =  10000/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
     fUe = 0
     sample = -10
     for i in range(100):
@@ -94,7 +94,7 @@ def cost_calc():
         for i in range(len(G.tour)):
             e = G.tour[i]
             mu = sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
-            sigma =  100/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+            sigma =  10000/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
             sample = -100
             while True:
                 sample = np.random.normal(mu, sigma)

@@ -75,8 +75,8 @@ class graph():
 
 def submodular_fun(e, f, tau, Hf):
     global G
-    mu = ((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)/(len(G.tour)+1)**2
-    sigma =  500*((len(G.tour)+1)**2)/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+    mu = sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+    sigma =  10000/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
     expectationfUe = 0
     fUe = 0
     for i in range(100):
@@ -97,7 +97,7 @@ def submodular_fun(e, f, tau, Hf):
     f_marginal = HfUe - Hf
     return f_marginal, HfUe, fUe
 
-G = graph(1500, 0.0)
+G = graph(3500, 0.0)
 
 def main():
     print("Number of nodes")
@@ -117,7 +117,7 @@ def main():
         H_min = 100000
         tour_best = []
         tau_min = 0
-        for tau1 in range(0, G.tau, 1):
+        for tau1 in range(500, G.tau, 1):
             print(tau1, G.alpha)
             subtour = [0]*n
             tau = float(tau1)
@@ -169,8 +169,8 @@ def main():
             f = 0
             for j in range(len(G.tour)):
                 e = G.tour[j]
-                mu = ((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)/(j+1)**2
-                sigma =  500*((j+1)**2)/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+                mu = sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
+                sigma =  10000/sqrt((G.points[e[0]][0]-G.points[e[1]][0])**2 + (G.points[e[0]][1]-G.points[e[1]][1])**2)
                 sample = -100
                 while True:
                     sample = np.random.normal(mu, sigma)
