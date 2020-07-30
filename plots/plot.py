@@ -84,12 +84,14 @@ with open('risk_distance_H_vs_alpha.csv', 'r') as file:
             c=0
             flag=1
 
-tau_init = 0
-tau = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
 print(H1)
+
+tau_init = 0
+tau = []
+tau = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
 for i in range(len(H1)):
     # tau.append(tau_init)
-    # tau_init+=0.1
+    # tau_init+=100
     H1[i]/=1
     # H2[i]/=1
     # H3[i]/=1
@@ -100,9 +102,12 @@ for i in range(len(H1)):
     # H8[i]/=1
     # H9[i]/=1
 
+print(len(H1), len(tau))
+
 fig, ax = plt.subplots()
 
 plt.scatter(tau, H1, marker='o')
+# ax.plot(tau, H1, label = 'alpaha=0.1')
 # ax.plot(tau, H2, label = 'alpaha=0.2')
 # ax.plot(tau, H3, label = 'alpaha=0.3')
 # ax.plot(tau, H4, label = 'alpaha=0.4')
@@ -185,8 +190,8 @@ plt.scatter(tau, H1, marker='o')
 #         ax.fill_between(tau, means+sdt, means-sdt ,alpha=0.5)
 #         ax.legend()
 
-# ax.legend()
-# ax.set_xlim([0,150])
+ax.legend()
+# ax.set_xlim([10000,30000])
 # ax.set_ylim([0,40])
 plt.show()
 
