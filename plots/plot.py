@@ -20,7 +20,7 @@ H9 = []
 temp = ''
 alpha = 0.9
 
-with open('risk_distance_H_vs_alpha.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_H_vs_alpha.csv', 'r') as file:
     reader = csv.reader(file)
     c=0
     flag = 0
@@ -88,7 +88,7 @@ print(H1)
 
 tau_init = 0
 tau = []
-tau = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+tau = [0.01, 0.1, 0.9, 0.99]
 for i in range(len(H1)):
     # tau.append(tau_init)
     # tau_init+=100

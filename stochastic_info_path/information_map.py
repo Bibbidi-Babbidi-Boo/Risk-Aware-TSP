@@ -12,10 +12,10 @@ class Information_Map:
         self.MAP_SIZE = (100, 100)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
-        self.NUM_DISTRIBUTIONS = 30
-        self.MAX_VAL = random.sample(range(0, 100), self.NUM_DISTRIBUTIONS)
-        for i in range(len(self.MAX_VAL)):
-            self.MAX_VAL[i] /= 5
+        self.NUM_DISTRIBUTIONS = 10
+        self.MAX_VAL = random.sample(range(1000, 5000), self.NUM_DISTRIBUTIONS)
+        # for i in range(len(self.MAX_VAL)):
+        #     self.MAX_VAL[i] /= 5
         self.points = []
         self.edges = []
         self.edge_info_reward = []
@@ -33,7 +33,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>10:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
                         count +=1
             if count == len(self.points):
                 self.points.append(p)
@@ -119,7 +119,7 @@ class Information_Map:
             reward += self.map[p[0]][p[1]]
         # reward = reward/500
         self.edge_info_reward.append(reward)
-        self.edge_failiure.append(25*reward)
+        self.edge_failiure.append(reward)
 
     def f_calc(self):
         expect = []
@@ -134,14 +134,14 @@ class Information_Map:
             for i in range(len(self.tour)):
                 mu = self.edge_info_reward[posn[i]]
                 sigma =  self.edge_failiure[posn[i]]
-                sample = -100
-                sample = np.random.normal(mu, sigma)
+                # sample = -100
+                # sample = np.random.normal(mu, sigma)
                 # if sample<0:
                 #     sample = 0
-                # while True:
-                    # sample = np.random.normal(mu, sigma)
-                    # if 0<sample<2*mu:
-                        # break
+                while True:
+                    sample = np.random.normal(mu, sigma)
+                    if 0<sample<2*mu:
+                        break
                 f += sample
             expect.append(f)
         return expect
