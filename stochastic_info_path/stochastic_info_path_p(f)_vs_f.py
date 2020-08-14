@@ -13,29 +13,24 @@ file2 = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic
 def best_edge_gain(e, f, Hf, reward, fail, tau, alpha, current_mean, current_var):
     mu = reward[e]
     sigma =  fail[e]
-    for i in range(len(current_mean)):
-        mu += current_mean[i]
-        sigma += current_var[i]
+    mu += current_mean
+    sigma += current_var
     fUe = 0
     expectationfUe = 0
     ## Sample values of f(SUe)
-    for i in range(100):
-        while True:
-            sample = np.random.normal(mu, sigma)
-            if 0<sample<2*mu:
-                break
-        sample = np.random.normal(mu, sigma)
+    for i in range(1000):
+        # while True:
+        #     sample = np.random.normal(mu, sqrt(sigma))
+        #     if 0<sample<2*mu:
+        #         break
+        sample = np.random.normal(mu, sqrt(sigma))
         t = sample
         if tau-t>0:
             expectationfUe += tau-t
-        else:
-            expectationfUe += 0
-        fUe += t
-    expectationfUe /= 100
-    fUe /= 100
+    expectationfUe /= 1000
     HfUe = tau - expectationfUe/alpha
     H_marginal = HfUe - Hf
-    return H_marginal, HfUe, fUe
+    return H_marginal, HfUe
 
 def main():
     ## For plotting table for different distributions
@@ -44,7 +39,7 @@ def main():
         M = Information_Map(0.0, 0.0)
         M.createInformation()
         M.points = []
-        n = 8 ## Number of points
+        n = 6 ## Number of points
         M.rand_vert_init(n)
         M.plot()  ## Show map
         fig, ax = plt.subplots()
@@ -55,15 +50,14 @@ def main():
                 po = M.drawLine(M.points[i], M.points[j])
                 M.reward_calc(po)
         print(M.edge_info_reward)
-        subtour = [0]*n
         ## For given alphas
-        for i in [0.01, 0.1, 0.9, 0.99]:
-            M.alpha = i
+        for alp in [0.01, 0.1, 0.5, 0.9, 0.99]:
+            M.alpha = alp
             H_max = -100000
             tau_max = 0
             tour_best = []
             ## For tau in range
-            for tau in np.arange(0, 5000, 2):
+            for tau in np.arange(0, 2000, 2):
                 ## Initialize Hf, f, H_marginal, subtour, reward, edges, fail(var)
                 edges = list(M.edges)
                 reward = list(M.edge_info_reward)
@@ -71,8 +65,8 @@ def main():
                 subtour = [0]*n
                 M.tau = float(tau)
                 M.tour = []
-                current_mean = []
-                current_var = []
+                current_mean = 0
+                current_var = 0
                 print(M.tau, M.alpha, ta)
                 Hf = M.tau-M.tau/M.alpha
                 f = 0
@@ -80,10 +74,13 @@ def main():
                 while edges!=[] and len(M.tour)<n:
                     Hm = []
                     for e in range(len(edges)):
-                        H_marginal, HfUe, fUe = best_edge_gain(e, f, Hf, reward, fail, M.tau, M.alpha, current_mean, current_var)
-                        Hm.append([H_marginal, HfUe, fUe, e])
+                        H_marginal, HfUe = best_edge_gain(e, f, Hf, reward, fail, M.tau, M.alpha, current_mean, current_var)
+                        Hm.append([H_marginal, HfUe, e])
                     Hm.sort(reverse=1)
-                    new_edge = Hm[0][3]
+                    # print("_______________")
+                    # print(reward)
+                    # print(Hm)
+                    new_edge = Hm[0][2]
                     ## Check degree constraint
                     if subtour[edges[new_edge][0]]<2 and subtour[edges[new_edge][1]]<2:
                         M.tour.append(edges[new_edge])
@@ -95,16 +92,16 @@ def main():
                             M.tour.pop(len(M.tour)-1)
                             subtour[edges[new_edge][0]]-=1
                             subtour[edges[new_edge][1]]-=1
-                            current_mean.append(reward[new_edge])
-                            current_var.append(fail[new_edge])
                         else:
                             H_marginal = Hm[0][0]
                             Hf = Hm[0][1]
-                            f = Hm[0][2]
+                            current_mean+=reward[new_edge]
+                            current_var+=fail[new_edge]
                     edges.pop(new_edge)
                     fail.pop(new_edge)
                     reward.pop(new_edge)
                 print(Hf)
+                # exit()
                 if Hf>H_max:
                     tau_max = M.tau
                     H_max = Hf
@@ -129,20 +126,22 @@ def main():
             for j in range(len(posn)):
                 mu += M.edge_info_reward[posn[j]]
                 sigma +=  M.edge_failiure[posn[j]]
-                for k in range(10000):
-                    while True:
-                        f = np.random.normal(mu, sigma)
-                        if 0<f<2*mu:
-                            break
-                    # sample = np.random.normal(mu, sigma)
-                    # if sample<0:
-                    #     sample = 0
-                    # while True:
-                    # f = np.random.normal(mu, sigma)
-                        # if 0<sample<2*mu:
-                            # break
-                    file.write('%f;' % float(f))
-                file.write('\n')
+                print(i, j, mu, sigma)
+            for k in range(10000):
+                f = np.random.normal(mu, sqrt(sigma))
+                # while True:
+                #     f = np.random.normal(mu, sqrt(sigma))
+                #     if 0<f<2*mu:
+                #         break
+                # sample = np.random.normal(mu, sigma)
+                # if sample<0:
+                #     sample = 0
+                # while True:
+                # f = np.random.normal(mu, sigma)
+                    # if 0<sample<2*mu:
+                        # break
+                file.write('%f;' % float(f))
+            file.write('\n')
         M.plot()
         ax.set_xlim(0, 99)
         ax.set_ylim(0, 99)

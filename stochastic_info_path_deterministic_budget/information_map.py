@@ -12,8 +12,8 @@ class Information_Map:
         self.MAP_SIZE = (100, 100)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
-        self.NUM_DISTRIBUTIONS = 30
-        self.MAX_VAL = random.sample(range(10, 1000), self.NUM_DISTRIBUTIONS)
+        self.NUM_DISTRIBUTIONS = 10
+        self.MAX_VAL = random.sample(range(1000, 5000), self.NUM_DISTRIBUTIONS)
         # for i in range(len(self.MAX_VAL)):
         #     self.MAX_VAL[i] /= 5
         self.points = []
@@ -24,6 +24,7 @@ class Information_Map:
         self.alpha = alpha
         self.tour = []
         self.all_tour = []
+        self.edge_length = []
 
     def rand_vert_init(self, n):
         while len(self.points) < n:
@@ -32,10 +33,10 @@ class Information_Map:
             p = [x,y]
             count = 0
             if p not in self.points:
-            #     for point in self.points:
-            #         if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
-            #             count +=1
-            # if count == len(self.points):
+                for point in self.points:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
+                        count +=1
+            if count == len(self.points):
                 self.points.append(p)
             else:
                 pass
@@ -43,8 +44,8 @@ class Information_Map:
     def bivariateGaussianMatrix(self, pos):
         gaussian_mean = [self.MAP_SIZE[0]*np.random.rand(), self.MAP_SIZE[1]*np.random.rand()]
         gaussian_var = np.zeros(2)
-        gaussian_var[0] = self.variance_scale[0]*random.sample(range(2, 100), 1)[0]/80
-        gaussian_var[1] = self.variance_scale[1]*random.sample(range(2, 100), 1)[0]/80
+        gaussian_var[0] = self.variance_scale[0]*random.sample(range(20, 100), 1)[0]/100
+        gaussian_var[1] = self.variance_scale[1]*random.sample(range(20, 100), 1)[0]/100
         SigmaX = np.sqrt(gaussian_var[0])
         SigmaY = np.sqrt(gaussian_var[1])
         for i in range(self.MAP_SIZE[0]):
@@ -54,6 +55,9 @@ class Information_Map:
     def createInformation(self):
             for i in range(self.NUM_DISTRIBUTIONS):
                 self.bivariateGaussianMatrix(i)
+            for i in range(self.MAP_SIZE[0]):
+                for j in range(self.MAP_SIZE[1]):
+                    self.map[i][j] += 1
             # self.map = self.map.transpose()
 
     def plot(self, array = []):
@@ -118,33 +122,32 @@ class Information_Map:
         for p in points:
             reward += self.map[p[0]][p[1]]
         # reward = reward/500
-        self.edge_info_reward.append(2*reward)
-        self.edge_failiure.append((reward*6)**2)
-    #
-    # def f_calc(self):
-    #     expect = []
-    #     posn = []
-    #     for i in range(len(self.tour)):
-    #         for j in range(len(self.edges)):
-    #             if self.edges[j][0] == self.tour[i][0] and self.edges[j][1] == self.tour[i][1]:
-    #                 posn.append(j)
-    #                 break
-    #     for j in range(1000):
-    #         f = 0
-    #         for i in range(len(self.tour)):
-    #             mu = self.edge_info_reward[posn[i]]
-    #             sigma =  self.edge_failiure[posn[i]]
-    #             # sample = -100
-    #             # sample = np.random.normal(mu, sigma)
-    #             # if sample<0:
-    #             #     sample = 0
-    #             while True:
-    #                 sample = np.random.normal(mu, sigma)
-    #                 if 0<sample<2*mu:
-    #                     break
-    #             f += sample
-    #         expect.append(f)
-    #     return expect
+        self.edge_info_reward.append(reward)
+        self.edge_failiure.append(reward)
+
+    def f_calc(self):
+        expect = []
+        posn = []
+        for i in range(len(self.tour)):
+            for j in range(len(self.edges)):
+                if self.edges[j][0] == self.tour[i][0] and self.edges[j][1] == self.tour[i][1]:
+                    posn.append(j)
+                    break
+        for j in range(1000):
+            f = 0
+            for i in range(len(self.tour)):
+                mu = self.edge_info_reward[posn[i]]
+                sigma =  self.edge_failiure[posn[i]]
+                sample = np.random.normal(mu, sigma)
+                # if sample<0:
+                #     sample = 0
+                # while True:
+                #     sample = np.random.normal(mu, sigma)
+                #     if 0<sample<2*mu:
+                #         break
+                f += sample
+            expect.append(f)
+        return expect
 
     def DFS(self):
         visited = [False]*len(self.points)
