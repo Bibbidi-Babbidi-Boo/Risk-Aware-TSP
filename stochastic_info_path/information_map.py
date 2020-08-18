@@ -12,10 +12,8 @@ class Information_Map:
         self.MAP_SIZE = (100, 100)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
-        self.NUM_DISTRIBUTIONS = 30
-        self.MAX_VAL = random.sample(range(10, 1000), self.NUM_DISTRIBUTIONS)
-        # for i in range(len(self.MAX_VAL)):
-        #     self.MAX_VAL[i] /= 5
+        self.NUM_DISTRIBUTIONS = 15
+        self.MAX_VAL = random.sample(range(500, 1000), self.NUM_DISTRIBUTIONS)
         self.points = []
         self.edges = []
         self.edge_info_reward = []
@@ -32,10 +30,10 @@ class Information_Map:
             p = [x,y]
             count = 0
             if p not in self.points:
-            #     for point in self.points:
-            #         if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
-            #             count +=1
-            # if count == len(self.points):
+                for point in self.points:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>20:
+                        count +=1
+            if count == len(self.points):
                 self.points.append(p)
             else:
                 pass
@@ -43,8 +41,8 @@ class Information_Map:
     def bivariateGaussianMatrix(self, pos):
         gaussian_mean = [self.MAP_SIZE[0]*np.random.rand(), self.MAP_SIZE[1]*np.random.rand()]
         gaussian_var = np.zeros(2)
-        gaussian_var[0] = self.variance_scale[0]*random.sample(range(2, 100), 1)[0]/80
-        gaussian_var[1] = self.variance_scale[1]*random.sample(range(2, 100), 1)[0]/80
+        gaussian_var[0] = self.variance_scale[0]*random.sample(range(20, 100), 1)[0]/100
+        gaussian_var[1] = self.variance_scale[1]*random.sample(range(20, 100), 1)[0]/100
         SigmaX = np.sqrt(gaussian_var[0])
         SigmaY = np.sqrt(gaussian_var[1])
         for i in range(self.MAP_SIZE[0]):
@@ -54,7 +52,6 @@ class Information_Map:
     def createInformation(self):
             for i in range(self.NUM_DISTRIBUTIONS):
                 self.bivariateGaussianMatrix(i)
-            # self.map = self.map.transpose()
 
     def plot(self, array = []):
         fig, ax = plt.subplots()
@@ -67,13 +64,6 @@ class Information_Map:
                 po = self.drawLine(self.points[array[i][0]], self.points[array[i][1]])
                 for p in po:
                     plt.scatter(p[0], p[1], s=3, color='k')
-        # plt.scatter(self.points[0][0],self.points[0][1], s=3,color='k')
-        # input_size = 1000
-        # output_size = 100
-        # bin_size = input_size // output_size
-        # small_image = self.map.reshape((output_size, bin_size, output_size, bin_size, 1)).max(3).max(1)
-        # small_image = np.reshape(small_image, (100, 100))
-        # plt.imshow(small_image.transpose(), aspect='auto')
         plt.imshow(self.map)
         plt.colorbar()
         plt.show()
@@ -117,9 +107,10 @@ class Information_Map:
         reward = 0
         for p in points:
             reward += self.map[p[0]][p[1]]
-        # reward = reward/500
-        self.edge_info_reward.append(2*reward)
-        self.edge_failiure.append((reward*6)**2)
+        self.edge_info_reward.append(reward)
+        # self.edge_failiure.append((reward/2)**2)
+
+
     #
     # def f_calc(self):
     #     expect = []
