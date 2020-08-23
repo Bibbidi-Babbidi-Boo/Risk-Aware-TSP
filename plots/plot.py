@@ -20,7 +20,7 @@ H9 = []
 temp = ''
 alpha = 0.9
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_deterministic_budget/stochasatic_information_deterministic_budget_H(beta)_vs_beta.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_H_vs_alpha2.csv', 'r') as file:
     reader = csv.reader(file)
     c=0
     flag = 0
@@ -86,13 +86,13 @@ with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_deterministic_
 
 tau_init = 0
 tau = []
-# tau = [0.01, 0.1, 0.9, 0.99]
-beta = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+tau = [0.01, 0.1, 0.3, 0.6, 0.9, 0.99]
+# beta = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 for i in range(len(H1)):
     # tau.append(tau_init)
     # tau_init+=100
     H1[i]/=1
-    H2[i]/=1
+    # H2[i]/=1
     # H3[i]/=1
     # H4[i]/=1
     # H5[i]/=1
@@ -101,12 +101,12 @@ for i in range(len(H1)):
     # H8[i]/=1
     # H9[i]/=1
 
-print(len(H1), len(beta))
+print(len(H1), len(tau))
 
 fig, ax = plt.subplots()
 
-plt.scatter(beta, H1, marker='o')
-plt.scatter(beta, H2, marker='o')
+plt.scatter(tau, H1, marker='o')
+# plt.scatter(beta, H2, marker='o')
 # ax.plot(tau, H1, label = 'alpaha=0.1')
 # ax.plot(tau, H2, label = 'alpaha=0.2')
 # ax.plot(tau, H3, label = 'alpaha=0.3')

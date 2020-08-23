@@ -7,24 +7,24 @@ import numpy as np
 import statistics
 
 from information_map import Information_Map
-
+## Saving files for plots
 file = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f.csv', 'w')
 file2 = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_H_vs_alpha.csv', 'w')
 
 def best_edge_gain(e, Hf, reward, fail, tau, alpha, current_mean, current_var):
     mu = reward[e]
-    sigma =  fail[e]
+    var =  fail[e]
     mu += current_mean
-    sigma += current_var
+    var += current_var
     fUe = 0
     expectationfUe = 0
     ## Sample values of f(SUe)
-    for i in range(100):
-        t = np.random.normal(mu, sqrt(sigma))
+    for i in range(500):
+        t = np.random.normal(mu, sqrt(var))
         if tau-t>0:
             expectationfUe += tau-t
         fUe += t
-    expectationfUe /= (100)
+    expectationfUe /= (500)
     HfUe = tau - expectationfUe/alpha
     H_marginal = HfUe - Hf
     return H_marginal, HfUe
@@ -32,15 +32,14 @@ def best_edge_gain(e, Hf, reward, fail, tau, alpha, current_mean, current_var):
 def main():
     ## For plotting table for different distributions
     for ta in range(1):
-        ## Initialize information map
+        ## Initialize information map, with n vertices
         M = Information_Map(0.0, 0.0)
         M.createInformation()
         M.points = []
-        n = 6 ## Number of points
+        n = 8 ## Number of points
         M.rand_vert_init(n)
         M.plot()  ## Show map
         fig, ax = plt.subplots()
-        max_reward = 0
         max_fail = 0
         ## Caluclate rewards and variances for every edge
         for i in range(n):
@@ -49,105 +48,110 @@ def main():
                 po = M.drawLine(M.points[i], M.points[j])
                 M.reward_calc(po)
         M.edge_failiure = []
-        max_reward = statistics.median(M.edge_info_reward)
+        ## Normalise the reward and variances to a similar scale
+        median_reward = statistics.median(M.edge_info_reward)
         for i in range(len(M.edge_info_reward)):
-            M.edge_info_reward[i] = (M.edge_info_reward[i]*4/max_reward)**2
-            M.edge_failiure.append((M.edge_info_reward[i]*2.5)**2)
-        #     print(sqrt(M.edge_failiure[i]))
-        print(M.edge_info_reward)
+            M.edge_info_reward[i] = (M.edge_info_reward[i]*5/median_reward)**2
+            M.edge_failiure.append((M.edge_info_reward[i]*3)**2)
         ## For given alphas
         for alp in [0.01, 0.1, 0.3, 0.6, 0.9, 1]:
             M.alpha = alp
             H_max = -100000
             tour_best = []
-            ## For tau in range
+            ## For every tau in range
             for tau in np.arange(0, 500, 1):
-                ## Initialize Hf, f, H_marginal, subtour, reward, edges, fail(var)
+                ## Initialize Hf, H_marginal, subtour(to check subtours after adding an edge), reward(for edges), edges, fail(var), ret
+                M.tau = float(tau)
+                Hf = M.tau-M.tau/M.alpha
+                H_marginal = 0
                 edges = list(M.edges)
                 reward = list(M.edge_info_reward)
                 fail = list(M.edge_failiure)
                 subtour = [0]*n
-                M.tau = float(tau)
+                position_holder_pop = 1000
                 M.tour = []
+                ret = True
+                ## Reset the values of the current mean and variance of the path selected so far
                 current_mean = 0
                 current_var = 0
                 print(M.tau, M.alpha, ta)
-                Hf = M.tau-M.tau/M.alpha
-                H_marginal = 0
+                ## While a tour is not formed
                 while edges!=[] and len(M.tour)<n:
-                    Hm = []
-                    for e in range(len(edges)):
-                        H_marginal, HfUe = best_edge_gain(e, Hf, reward, fail, M.tau, M.alpha, current_mean, current_var)
-                        Hm.append([H_marginal, HfUe, e])
-                    Hm.sort(reverse=1)
-                    # print("_________________")
-                    # print(Hm)
-                    # print("+++++++++++++++++")
-                    # print(reward)
-                    # print("!!!!!!!!!!!!")
+                    ## If the tour so far is valid take new samples to find the next best edge
+                    if ret == True:
+                        Hm = []
+                        for e in range(len(edges)):
+                            H_marginal, HfUe = best_edge_gain(e, Hf, reward, fail, M.tau, M.alpha, current_mean, current_var)
+                            Hm.append([H_marginal, HfUe, e])
+                        Hm.sort(reverse=1)
+                    ## If the tour is invalid, remove use the previous sampled information
+                    else:
+                        for pos_iter in range(len(Hm)):
+                            if Hm[pos_iter][2] >= position_holder_pop:
+                                Hm[pos_iter][2] -= 1
                     new_edge = Hm[0][2]
-                    ## Check degree constraint
+                    ## Check degree constraint of tour formed
                     if subtour[edges[new_edge][0]]<2 and subtour[edges[new_edge][1]]<2:
                         M.tour.append(edges[new_edge])
                         subtour[edges[new_edge][0]]+=1
                         subtour[edges[new_edge][1]]+=1
                         ret = M.DFS()
-                        ## Check sub-loops
+                        ## Check sub-loops. If the loop is bad (ret=False), remove the new added edge, and change the edge numbers in Hm, so it can be used again
                         if ret == False and len(M.tour)<n:
                             M.tour.pop(len(M.tour)-1)
                             subtour[edges[new_edge][0]]-=1
                             subtour[edges[new_edge][1]]-=1
+                            position_holder_pop = new_edge
+                        ## If the tour is good, retain the edge
                         elif ret == True or len(M.tour) == n:
                             H_marginal = Hm[0][0]
                             Hf = Hm[0][1]
                             current_mean+=reward[new_edge]
                             current_var+=fail[new_edge]
+                    else:
+                        ret = False
+                        position_holder_pop = new_edge
+                    ## Update the list of edges, rewards and fail
                     edges.pop(new_edge)
                     fail.pop(new_edge)
                     reward.pop(new_edge)
+                    Hm.pop(0)
                 print(Hf)
+                ## If the new tour formed is better than previous tours, retain it
                 if Hf>H_max:
                     H_max = Hf
                     tour_best = list(M.tour)
+            ## Save tours for all alphas
             M.all_tour.append(tour_best)
             file2.write('%f;' % float(H_max))
 
-        print(M.all_tour)
+        ##For each tour
         for i in range(len(M.all_tour)):
             print(i)
             M.tour = M.all_tour[i]
             temp = 0
             posn = []
+            ## Find positions of the edges used
             for l in range(len(M.tour)):
                 for j in range(len(M.edges)):
                     if M.edges[j][0] == M.tour[l][0] and M.edges[j][1] == M.tour[l][1]:
                         posn.append(j)
                         break
             mu = 0
-            sigma = 0
+            var = 0
+            ## For each edge used
             for j in range(len(posn)):
                 mu += M.edge_info_reward[posn[j]]
-                sigma +=  M.edge_failiure[posn[j]]
-                print(i, j, mu, sigma)
+                var +=  M.edge_failiure[posn[j]]
+                print(i, j, mu, var)
             for k in range(10000):
-                f = np.random.normal(mu, sqrt(sigma))
+                f = np.random.normal(mu, sqrt(var))
                 file.write('%f;' % float(f))
             file.write('\n')
-        # M.plot()
-        # ax.set_xlim(0, 99)
-        # ax.set_ylim(0, 99)
-        # for j in range(len(M.all_tour)):
-        #     M.plot(M.all_tour[j])
-        #
-        # for j in range(len(M.all_tour)):
-        #     for i in range(len(M.points)):
-        #         plt.scatter(M.points[i][0], M.points[i][1], marker='o', color='b')
-        #     M.tour = M.all_tour[j]
-        #     for i in range(len(M.tour)):
-        #         x1 = [M.points[M.tour[i][0]][0], M.points[M.tour[i][1]][0]]
-        #         y1 = [M.points[M.tour[i][0]][1], M.points[M.tour[i][1]][1]]
-        #         plt.plot(x1, y1, color='r')
-        #     plt.show()
-
+        M.plot()
+        ax.set_xlim(0, 99)
+        ax.set_ylim(0, 99)
+        for j in range(len(M.all_tour)):
+            M.plot(M.all_tour[j])
 if __name__ == '__main__':
     main()

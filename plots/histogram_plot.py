@@ -21,7 +21,7 @@ H10 = []
 H11 = []
 temp = ''
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f2.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f_expect.csv', 'r') as file:
     reader = csv.reader(file)
     c = 0
     for row in reader:
@@ -67,7 +67,7 @@ with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_in
 # print(max(H1), max(H2), max(H3), max(H4), max(H5), max(H6), max(H7), max(H8), max(H9))
 print(H1)
 fig, ax = plt.subplots()
-xs = np.linspace(-200,500)
+xs = np.linspace(-1000,7000)
 #
 density = gaussian_kde(H1)
 density._compute_covariance()
@@ -79,7 +79,7 @@ ax.plot(xs,density(xs),label='alpha=0.1')
 # # #
 # density = gaussian_kde(H3)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='alpha=0.2')
+# ax.plot(xs,density(xs),label='beta=0.2')
 # # # # #
 density = gaussian_kde(H3)
 density._compute_covariance()
@@ -87,23 +87,23 @@ ax.plot(xs,density(xs),label='alpha=0.3')
 # # # # #
 # density = gaussian_kde(H5)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='alpha=0.4')
+# ax.plot(xs,density(xs),label='beta=0.4')
 # # # #
 # density = gaussian_kde(H3)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='alpha=0.5')
-# # # #
+# ax.plot(xs,density(xs),label='beta=0.5')
+# # #
 density = gaussian_kde(H4)
 density._compute_covariance()
 ax.plot(xs,density(xs),label='alpha=0.6')
 # # # # #
 # density = gaussian_kde(H8)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='alpha=0.7')
+# ax.plot(xs,density(xs),label='beta=0.7')
 # # #
 # density = gaussian_kde(H9)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='alpha=0.8')
+# ax.plot(xs,density(xs),label='beta=0.8')
 #
 density = gaussian_kde(H5)
 density._compute_covariance()

@@ -18,6 +18,7 @@ class Information_Map:
         self.edges = []
         self.edge_info_reward = []
         self.edge_failiure = []
+        self.edge_length = []
         self.tau = tau
         self.alpha = alpha
         self.tour = []
@@ -108,6 +109,7 @@ class Information_Map:
         for p in points:
             reward += self.map[p[0]][p[1]]
         self.edge_info_reward.append(reward)
+        self.edge_length.append(len(points))
         # self.edge_failiure.append((reward/2)**2)
 
 
