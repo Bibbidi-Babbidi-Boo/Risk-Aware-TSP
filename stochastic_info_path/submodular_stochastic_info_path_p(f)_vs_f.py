@@ -8,110 +8,95 @@ import statistics
 
 from information_map import Information_Map
 ## Saving files for plots
-file = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f_expect.csv', 'w')
-file2 = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_H_vs_alpha_expect.csv', 'w')
+file = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f.csv', 'w')
+file2 = open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_H_vs_alpha.csv', 'w')
 
-def best_edge_gain(e, Hf, reward, fail, tau, alpha, current_mean, current_var, edges, n, subtour, tour_temp, max_reward):
-    tour = list(tour_temp)
-    tour.append(edges[e])
-    mu = reward[e]
-    var =  fail[e]
-    sub = list(subtour)
-    sub[edges[e][0]] += 1
-    sub[edges[e][1]] += 1
-    sum_reward = 0
-    var_reward = 0
+def best_edge_gain(e, Hf, reward, edges, raster, tour_points, current_mean, current_var, M, subtour, max_reward):
+    pt = list(tour_points)
+    mu = current_mean
+    var = current_var
+    temp = 0
+    new_pt = raster[e]
     pos = []
     done_indices = []
-    ## Find which edges end in open vertices (degree <2)
-    for j in range(len(tour)):
-        p1 = tour[j][0]
-        p2 = tour[j][1]
-        if p1 not in done_indices and sub[p1]<2:
-            done_indices.append(p1)
-            for i in range(len(edges)):
-                if (edges[i][0] == p1 or edges[i][1] == p1):
-                    if edges[i][0] == p1 and edges[i][1] != p2:
-                        if sub[edges[i][1]] < 2 and i not in pos:
-                            pos.append(i)
-                    elif edges[i][1] == p1 and edges[i][0] != p2:
-                        if sub[edges[i][0]] < 2 and i not in pos:
-                            pos.append(i)
-        if p2 not in done_indices and sub[p2]<2:
-            done_indices.append(p2)
-            for i in range(len(edges)):
-                if (edges[i][0] == p2 or edges[i][1] == p2):
-                    if edges[i][0] == p2 and edges[i][1] != p1:
-                        if sub[edges[i][1]] < 2 and i not in pos:
-                            pos.append(i)
-                    elif edges[i][1] == p2 and edges[i][0] != p1:
-                        if sub[edges[i][0]] < 2 and i not in pos:
-                            pos.append(i)
-    ## For all open vertices calculate future expected reward
-    for i in pos:
-        sum_reward += reward[i]
-        var_reward += fail[i]
-    sum_reward /= n
-    var_reward /= n
-    # div = len(pos)
-    # if avg != 0:
-    #     avg = avg/div
-    #     var_avg = var_avg/div
-    mu += current_mean
-    var += current_var
+    for i in range(len(new_pt)):
+        if new_pt[i] not in pt:
+            temp += M.map[new_pt[i][0]][new_pt[i][1]]
+            pt.append(new_pt[i])
+    mu += temp
+    var += (3*temp)**2
     fUe = 0
     expectationfUe = 0
     ## Sample values of f(SUe)
-    for i in range(500):
-        sample = np.random.normal(mu+sum_reward, sqrt(var+var_reward))
-        t = sample + max_reward*len(tour)
-        if tau-t>0:
-            expectationfUe += tau-t
-    expectationfUe /= 500
-    HfUe = tau - expectationfUe/alpha
+    for i in range(1000):
+        t = np.random.normal(mu, sqrt(var))
+        if M.tau-t>0:
+            expectationfUe += M.tau-t
+        fUe += t
+    expectationfUe /= (1000)
+    HfUe = M.tau - expectationfUe/M.alpha
     H_marginal = HfUe - Hf
-    return H_marginal, HfUe
+    return H_marginal, HfUe, mu, var, pt
 
 def main():
     ## For plotting table for different distributions
     for ta in range(1):
-        ## Initialize information map
+        ## Initialize information map, with n vertices
         M = Information_Map(0.0, 0.0)
         M.createInformation()
         M.points = []
-        n = 6 ## Number of points
+        n = 8 ## Number of points
         M.rand_vert_init(n)
         M.plot()  ## Show map
         fig, ax = plt.subplots()
-        max_fail = 0
         ## Caluclate rewards and variances for every edge
         for i in range(n):
             for j in range(i+1,n):
                 M.edges.append([i, j])
-                po = M.drawLine(M.points[i], M.points[j])
+                if (M.points[j][0]-M.points[i][0]) == 0:
+                    theta = 0
+                else:
+                    slope = (M.points[j][1]-M.points[i][1])/(M.points[j][0]-M.points[i][0])
+                    if slope == 0:
+                        theta = np.pi/2
+                    else:
+                        theta = atan(-1/slope)
+                # pt = [(10, 10), (10, 80), (30, 80), (30, 10)]
+                pt = [(max(min(ceil(M.points[i][0]+2*cos(theta)), 99), 0), max(min(ceil(M.points[i][1]+2*sin(theta)), 99), 0)),
+                (max(min(floor(M.points[i][0]-2*cos(theta)), 99), 0), max(min(floor(M.points[i][1]-2*sin(theta)), 99), 0)),
+                (max(min(floor(M.points[j][0]-2*cos(theta)), 99), 0), max(min(floor(M.points[j][1]-2*sin(theta)), 99), 0)),
+                (max(min(ceil(M.points[j][0]+2*cos(theta)), 99), 0), max(min(ceil(M.points[j][1]+2*sin(theta)), 99), 0))]
+                po = M.raster(pt, i, j)
                 M.reward_calc(po)
-        M.edge_failiure = []
+
         ## Normalise the reward and variances to a similar scale
-        median_reward = statistics.median(M.edge_info_reward)
-        for i in range(len(M.edge_info_reward)):
-            M.edge_info_reward[i] = (M.edge_info_reward[i]*5/median_reward)**2
-            M.edge_failiure.append((M.edge_info_reward[i]*3)**2)
         max_reward = max(M.edge_info_reward)
+        for i in range(M.MAP_SIZE[0]):
+            for j in range(M.MAP_SIZE[1]):
+                M.map[i][j] /= max_reward
+        for i in range(len(M.edge_info_reward)):
+            M.edge_info_reward[i] /= max_reward
+        max_reward = max(M.edge_info_reward)
+        gaussian_info = []
+        all_mean_info = []
         ## For given alphas
-        for alp in [0.01, 0.1, 0.9, 1]:
+        for alp in [0.01, 0.1, 0.3, 0.6, 0.9, 1]:
             M.alpha = alp
             H_max = -100000
-            tau_max = 0
             tour_best = []
-            ## For tau in range
-            for tau in np.arange(0, 2000, 2):
+            all_points = []
+            all_means = []
+            ## For every tau in range
+            for tau in np.arange(0, 1000, 1):
+                means = []
                 ## Initialize Hf, H_marginal, subtour(to check subtours after adding an edge), reward(for edges), edges, fail(var), ret
                 M.tau = float(tau)
                 Hf = M.tau-M.tau/M.alpha
                 H_marginal = 0
                 edges = list(M.edges)
                 reward = list(M.edge_info_reward)
-                fail = list(M.edge_failiure)
+                raster = list(M.edge_raster)
+                tour_points = []
                 subtour = [0]*n
                 position_holder_pop = 1000
                 M.tour = []
@@ -126,8 +111,8 @@ def main():
                     if ret == True:
                         Hm = []
                         for e in range(len(edges)):
-                            H_marginal, HfUe = best_edge_gain(e, Hf, reward, fail, M.tau, M.alpha, current_mean, current_var, edges, n, subtour, M.tour, max_reward)
-                            Hm.append([H_marginal, HfUe, e])
+                            H_marginal, HfUe, mu, var, pt = best_edge_gain(e, Hf, reward, edges, raster, tour_points, current_mean, current_var, M, subtour, max_reward)
+                            Hm.append([H_marginal, HfUe, e, mu, var, pt])
                         Hm.sort(reverse=1)
                     ## If the tour is invalid, remove use the previous sampled information
                     else:
@@ -151,46 +136,50 @@ def main():
                         elif ret == True or len(M.tour) == n:
                             H_marginal = Hm[0][0]
                             Hf = Hm[0][1]
-                            current_mean+=reward[new_edge]
-                            current_var+=fail[new_edge]
+                            current_mean = Hm[0][3]
+                            current_var = Hm[0][4]
+                            tour_points = list(Hm[0][5])
+                            means.append(current_mean)
                     else:
                         ret = False
                         position_holder_pop = new_edge
                     ## Update the list of edges, rewards and fail
                     edges.pop(new_edge)
-                    fail.pop(new_edge)
                     reward.pop(new_edge)
+                    raster.pop(new_edge)
                     Hm.pop(0)
-                print(Hf)
+                print(Hf, current_mean)
+                if Hf < -8/(5*M.alpha):
+                    break
                 ## If the new tour formed is better than previous tours, retain it
                 if Hf>H_max:
-                    tau_max = M.tau
+                    all_means = list(means)
+                    all_points = list(tour_points)
                     H_max = Hf
                     tour_best = list(M.tour)
+                    info = [current_mean, current_var]
             ## Save tours for all alphas
+            all_mean_info.append(all_means)
             M.all_tour.append(tour_best)
-            file2.write('%f;' % float(H_max))
+            M.best_points.append(all_points)
+            gaussian_info.append(info)
+            # file2.write('%f;' % float(H_max))
 
         ##For each tour
+        for i in range(len(all_mean_info)):
+            for j in range(len(all_mean_info[i])):
+                print(j, all_mean_info[i][j])
+            print("------------")
         for i in range(len(M.all_tour)):
             print(i)
             M.tour = M.all_tour[i]
             temp = 0
             posn = []
             ## Find positions of the edges used
-            for l in range(len(M.tour)):
-                for j in range(len(M.edges)):
-                    if M.edges[j][0] == M.tour[l][0] and M.edges[j][1] == M.tour[l][1]:
-                        posn.append(j)
-                        break
-            mu = 0
-            var = 0
+            mu = gaussian_info[i][0]
+            var = gaussian_info[i][1]
+            print(mu, var)
             ## For each edge used
-            for j in range(len(posn)):
-                mu += M.edge_info_reward[posn[j]]
-                var +=  M.edge_failiure[posn[j]]
-                print(i, j, mu, var)
-            mu += max_reward*n
             for k in range(10000):
                 f = np.random.normal(mu, sqrt(var))
                 file.write('%f;' % float(f))
@@ -199,6 +188,6 @@ def main():
         ax.set_xlim(0, 99)
         ax.set_ylim(0, 99)
         for j in range(len(M.all_tour)):
-            M.plot(M.all_tour[j])
+            M.plot(M.best_points[j], M.all_tour[j])
 if __name__ == '__main__':
     main()

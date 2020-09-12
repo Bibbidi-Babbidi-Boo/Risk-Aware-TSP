@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time
 import math
 import sys
@@ -6,23 +7,46 @@ import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 from math import *
 import random
+import numpy
+from PIL import Image, ImageDraw
+from matplotlib.path import Path
 
 class Information_Map:
     def __init__(self, tau, alpha):
         self.MAP_SIZE = (100, 100)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
-        self.NUM_DISTRIBUTIONS = 15
-        self.MAX_VAL = random.sample(range(500, 1000), self.NUM_DISTRIBUTIONS)
+        self.NUM_DISTRIBUTIONS = 20
+        self.MAX_VAL = random.sample(range(800, 1000), self.NUM_DISTRIBUTIONS)
         self.points = []
         self.edges = []
         self.edge_info_reward = []
-        self.edge_failiure = []
+        self.edge_raster = []
         self.edge_length = []
         self.tau = tau
         self.alpha = alpha
         self.tour = []
         self.all_tour = []
+        self.best_points = []
+        self.all_fUe = []
+        self.gaussian_info = []
+
+    def rasterization(self, poly, n1, n2):
+        img = Image.new('1', (self.MAP_SIZE[1], self.MAP_SIZE[0]), 0)
+        ImageDraw.Draw(img).polygon(poly, outline=1, fill=1)
+        mask = numpy.array(img)
+        mask = np.transpose(mask)
+        temp = []
+        for i in range(self.MAP_SIZE[0]):
+            for j in range(self.MAP_SIZE[1]):
+                if mask[i][j] == 1:
+                    temp.append([i, j])
+        po = self.drawLine(self.points[n1], self.points[n2])
+        for i in range(len(po)):
+            if po[i] not in temp:
+                temp.append(po[i])
+        self.edge_raster.append(temp)
+        return temp
 
     def rand_vert_init(self, n):
         while len(self.points) < n:
@@ -32,7 +56,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>20:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
                         count +=1
             if count == len(self.points):
                 self.points.append(p)
@@ -40,10 +64,10 @@ class Information_Map:
                 pass
 
     def bivariateGaussianMatrix(self, pos):
-        gaussian_mean = [self.MAP_SIZE[0]*np.random.rand(), self.MAP_SIZE[1]*np.random.rand()]
+        gaussian_mean = [min(80, max(20, self.MAP_SIZE[0]*np.random.rand())), min(80, max(20, self.MAP_SIZE[1]*np.random.rand()))]
         gaussian_var = np.zeros(2)
-        gaussian_var[0] = self.variance_scale[0]*random.sample(range(20, 100), 1)[0]/50
-        gaussian_var[1] = self.variance_scale[1]*random.sample(range(20, 100), 1)[0]/50
+        gaussian_var[0] = self.variance_scale[0]*random.sample(range(20, 50), 1)[0]/60
+        gaussian_var[1] = self.variance_scale[1]*random.sample(range(20, 50), 1)[0]/60
         SigmaX = np.sqrt(gaussian_var[0])
         SigmaY = np.sqrt(gaussian_var[1])
         for i in range(self.MAP_SIZE[0]):
@@ -53,18 +77,24 @@ class Information_Map:
     def createInformation(self):
             for i in range(self.NUM_DISTRIBUTIONS):
                 self.bivariateGaussianMatrix(i)
+            max_value = max(list(map(max, self.map)))
+            # for i in range(self.MAP_SIZE[0]):
+            #     for j in range(self.MAP_SIZE[1]):
+            #         self.map[i][j] /= max_value
 
-    def plot(self, array = []):
+    def plot(self, edge_points = [], array = []):
         fig, ax = plt.subplots()
         ax.set_xlim(0, 99)
         ax.set_ylim(0, 99)
+        for p in edge_points:
+            plt.scatter(p[0], p[1], s=3, color='k')
         for i in range(len(self.points)):
             plt.scatter(self.points[i][0],self.points[i][1], s=15, color='w')
         if array != []:
             for i in range(len(array)):
                 po = self.drawLine(self.points[array[i][0]], self.points[array[i][1]])
                 for p in po:
-                    plt.scatter(p[0], p[1], s=3, color='k')
+                    plt.scatter(p[0], p[1], s=3, color='r')
         plt.imshow(self.map)
         plt.colorbar()
         plt.show()
@@ -109,6 +139,8 @@ class Information_Map:
         for p in points:
             reward += self.map[p[0]][p[1]]
         self.edge_info_reward.append(reward)
+
+    def length_calc(self, points):
         self.edge_length.append(len(points))
         # self.edge_failiure.append((reward/2)**2)
 

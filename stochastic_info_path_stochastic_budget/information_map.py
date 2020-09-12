@@ -21,15 +21,17 @@ class Information_Map:
         self.points = []
         self.edges = []
         self.edge_info_reward = []
-        self.edge_failiure = []
+        self.edge_raster = []
+        self.edge_length = []
         self.tau = tau
         self.alpha = alpha
         self.tour = []
         self.all_tour = []
-        self.edge_raster = []
         self.best_points = []
+        self.all_fUe = []
+        self.gaussian_info = []
 
-    def raster(self, poly, n1, n2):
+    def rasterization(self, poly, n1, n2):
         img = Image.new('1', (self.MAP_SIZE[1], self.MAP_SIZE[0]), 0)
         ImageDraw.Draw(img).polygon(poly, outline=1, fill=1)
         mask = numpy.array(img)
@@ -54,7 +56,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>30:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>20:
                         count +=1
             if count == len(self.points):
                 self.points.append(p)
@@ -137,6 +139,10 @@ class Information_Map:
         for p in points:
             reward += self.map[p[0]][p[1]]
         self.edge_info_reward.append(reward)
+
+    def length_calc(self, points):
+        self.edge_length.append(len(points))
+        # self.edge_failiure.append((reward/2)**2)
 
 
     #

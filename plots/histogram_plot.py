@@ -21,7 +21,7 @@ H10 = []
 H11 = []
 temp = ''
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_information_p(y)_vs_f_expect.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/stochasatic_information_p(y)_vs_f_alpha_vs_beta=0.5_function.csv', 'r') as file:
     reader = csv.reader(file)
     c = 0
     for row in reader:
@@ -67,7 +67,7 @@ with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path/stochasatic_in
 # print(max(H1), max(H2), max(H3), max(H4), max(H5), max(H6), max(H7), max(H8), max(H9))
 print(H1)
 fig, ax = plt.subplots()
-xs = np.linspace(-1000,7000)
+xs = np.linspace(-5,15)
 #
 density = gaussian_kde(H1)
 density._compute_covariance()
@@ -112,7 +112,7 @@ ax.plot(xs,density(xs),label='alpha=0.9')
 density = gaussian_kde(H6)
 density._compute_covariance()
 ax.plot(xs,density(xs),label='alpha=1')
-# print(density(xs))
+print(density(xs))
 
 # plt.xlim([200, 400])
 # plt.ylim([0, 0.04])

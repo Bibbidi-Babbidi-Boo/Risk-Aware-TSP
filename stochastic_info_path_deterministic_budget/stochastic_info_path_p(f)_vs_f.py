@@ -59,15 +59,16 @@ def main():
             M.edge_length[i] = M.edge_length[i]*max_edge_reward/max_edge_length
         max_edge_length = max(M.edge_length)
         ## For given alphas
-        for alp in [1]:
+        file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_deterministic_budget/stochasatic_information_p(y)_vs_f_alpha_vs_beta=0.5_3.csv'
+        file = open(file_name, 'w')
+        for alp in [0.01, 0.1, 0.3, 0.6, 0.9, 1]:
             ## Save file
-            file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_deterministic_budget/stochasatic_information_p(y)_vs_f'+str(alp)+'.csv'
-            file = open(file_name, 'w')
+            # file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_deterministic_budget/stochasatic_information_p(y)_vs_f'+str(alp)+'.csv'
             M.alpha = alp
             H_max = -100000
             tour_best = []
             M.tour = []
-            for beta in [0, 0.1, 0.3, 0.6, 0.9, 1]:
+            for beta in [0.5]:
                 # For every tau in range
                 for tau in np.arange(0, 5000, 5):
                     ## Initialize Hf, H_marginal, subtour(to check subtours after adding an edge), reward(for edges), edges, fail(var), ret
@@ -138,30 +139,30 @@ def main():
                 ## Save tours for all alphas
                 M.all_tour.append(tour_best)
 
-            ##For each tour
-            for i in range(len(M.all_tour)):
-                print(i)
-                M.tour = M.all_tour[i]
-                temp = 0
-                posn = []
-                ## Find positions of the edges used
-                for l in range(len(M.tour)):
-                    for j in range(len(M.edges)):
-                        if M.edges[j][0] == M.tour[l][0] and M.edges[j][1] == M.tour[l][1]:
-                            posn.append(j)
-                            break
-                mu = 0
-                var = 0
-                ## For each edge used
-                for j in range(len(posn)):
-                    mu += M.edge_info_reward[posn[j]]
-                    var +=  M.edge_failiure[posn[j]]
-                    print(i, j, mu, var)
-                for k in range(10000):
-                    f = np.random.normal(mu, sqrt(var))
-                    file.write('%f;' % float(f))
-                file.write('\n')
-            file.close()
+        ##For each tour
+        for i in range(len(M.all_tour)):
+            print(i)
+            M.tour = M.all_tour[i]
+            temp = 0
+            posn = []
+            ## Find positions of the edges used
+            for l in range(len(M.tour)):
+                for j in range(len(M.edges)):
+                    if M.edges[j][0] == M.tour[l][0] and M.edges[j][1] == M.tour[l][1]:
+                        posn.append(j)
+                        break
+            mu = 0
+            var = 0
+            ## For each edge used
+            for j in range(len(posn)):
+                mu += M.edge_info_reward[posn[j]]
+                var +=  M.edge_failiure[posn[j]]
+                print(i, j, mu, var)
+            for k in range(10000):
+                f = np.random.normal(mu, sqrt(var))
+                file.write('%f;' % float(f))
+            file.write('\n')
+        file.close()
         M.plot()
         ax.set_xlim(0, 99)
         ax.set_ylim(0, 99)
