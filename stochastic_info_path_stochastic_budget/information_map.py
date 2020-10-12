@@ -20,7 +20,7 @@ class Information_Map:
         self.MAX_VAL = random.sample(range(800, 1000), self.NUM_DISTRIBUTIONS)
         self.points = []
         self.edges = []
-        self.edge_info_reward = []
+        self.edge_reward = []
         self.edge_raster = []
         self.edge_length = []
         self.tau = tau
@@ -56,7 +56,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>20:
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>8+3*len(self.points):
                         count +=1
             if count == len(self.points):
                 self.points.append(p)
@@ -138,7 +138,7 @@ class Information_Map:
         reward = 0
         for p in points:
             reward += self.map[p[0]][p[1]]
-        self.edge_info_reward.append(reward)
+        self.edge_reward.append(reward)
 
     def length_calc(self, points):
         self.edge_length.append(len(points))
@@ -157,7 +157,7 @@ class Information_Map:
     #     for j in range(1000):
     #         f = 0
     #         for i in range(len(self.tour)):
-    #             mu = self.edge_info_reward[posn[i]]
+    #             mu = self.edge_reward[posn[i]]
     #             sigma =  self.edge_failiure[posn[i]]
     #             # sample = -100
     #             # sample = np.random.normal(mu, sigma)
