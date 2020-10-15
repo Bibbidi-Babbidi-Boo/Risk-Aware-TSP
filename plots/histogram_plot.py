@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib
 from mpl_toolkits import mplot3d
 import csv
 # import seaborn as sns
@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from scipy.stats import norm
+
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 tau = []
 H1 = []
@@ -132,7 +135,7 @@ H121 = []
 H122 = []
 temp = ''
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/traditional_variance5.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline4.csv', 'r') as file:
     reader = csv.reader(file)
     c = 0
     for row in reader:
@@ -394,84 +397,85 @@ with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_bud
                     temp = ''
 
 fig, ax = plt.subplots()
-xs = np.linspace(80, 400)
+xs = np.linspace(50, 450)
 
 print(len(H1))
 
 # mean,std=norm.fit(H1)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.005')
+# plt.plot(xs, y,label='beta=0.005')
 #
 # mean,std=norm.fit(H2)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.01')
+# plt.plot(xs, y,label='beta=0.01')
 #
 # mean,std=norm.fit(H3)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.05')
+# plt.plot(xs, y,label='beta=0.05')
 #
 # mean,std=norm.fit(H4)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.1')
+# plt.plot(xs, y,label='beta=0.1')
 
 # mean,std=norm.fit(H5)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.5')
+# plt.plot(xs, y,label='beta=0.5')
 #
 # mean,std=norm.fit(H6)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=1')
+# plt.plot(xs, y,label='beta=1')
 
 # mean,std=norm.fit(H7)
 # y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='alpha=0.9')
+# plt.plot(xs, y,label='beta=0.9')
 
 
 
 
-density = gaussian_kde(H1)
+# density = gaussian_kde(H11)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label='beta=0.01')
+
+density = gaussian_kde(H22)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.01')
+ax.plot(xs,density(xs),label='beta=0.1')
 
-density = gaussian_kde(H12)
+density = gaussian_kde(H33)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.1')
+ax.plot(xs,density(xs),label='beta=0.2')
 
-density = gaussian_kde(H23)
+density = gaussian_kde(H44)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.2')
+ax.plot(xs,density(xs),label='beta=0.3')
+
 #
-density = gaussian_kde(H34)
+density = gaussian_kde(H55)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.3')
+ax.plot(xs,density(xs),label='beta=0.4')
 #
-density = gaussian_kde(H45)
+density = gaussian_kde(H66)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.4')
+ax.plot(xs,density(xs),label='beta=0.5')
 
-density = gaussian_kde(H56)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.5')
+# density = gaussian_kde(H77)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label='beta=0.6')
 #
-density = gaussian_kde(H67)
+# density = gaussian_kde(H88)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label='beta=0.7')
+#
+density = gaussian_kde(H99)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.6')
+ax.plot(xs,density(xs),label='beta=0.8')
+#
+# density = gaussian_kde(H110)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label='beta=0.9')
 
-density = gaussian_kde(H78)
+density = gaussian_kde(H121)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.7')
-
-density = gaussian_kde(H89)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.8')
-
-density = gaussian_kde(H100)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=0.9')
-
-density = gaussian_kde(H112)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='alpha=1')
+ax.plot(xs,density(xs),label='beta=1')
 
 
 
@@ -483,6 +487,9 @@ ax.plot(xs,density(xs),label='alpha=1')
 # ax.hist(H4, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.6')
 # ax.hist(H5, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.9')
 # ax.hist(H6, bins='auto', histtype=u'step', density=True, label = 'alpaha=1')
+
+ax.set_xlabel(r"Value of the utility function $f(\mathit{S^{B}}, y)$", fontsize=14)
+ax.set_ylabel(r"Probability distribution of $f(\mathit{S^{B}}, y)$", fontsize=14)
 
 plt.legend()
 plt.show()
