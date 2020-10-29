@@ -56,7 +56,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>5+2*len(self.points):
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>8+3*len(self.points):
                         count +=1
             if count == len(self.points):
                 self.points.append(p)

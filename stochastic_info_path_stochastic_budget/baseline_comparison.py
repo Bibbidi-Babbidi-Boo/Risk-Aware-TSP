@@ -12,7 +12,6 @@ def initialization(n):
     M = Information_Map(0.0, 0.0)
     M.createInformation()
     M.rand_vert_init(n)
-    # M.plot()
     for i in range(n):
         for j in range(i+1,n):
             M.edges.append([i, j])
@@ -25,24 +24,17 @@ def initialization(n):
                 else:
                     theta = atan(-1/slope)
             po = M.drawLine(M.points[i], M.points[j])
-            M.edge_length.append(exp(0.02*len(po)))
-            # M.length_calc(po)
+            M.length_calc(po)
             pt = [(max(min(ceil(M.points[i][0]+2*cos(theta)), 99), 0), max(min(ceil(M.points[i][1]+2*sin(theta)), 99), 0)),
             (max(min(floor(M.points[i][0]-2*cos(theta)), 99), 0), max(min(floor(M.points[i][1]-2*sin(theta)), 99), 0)),
             (max(min(floor(M.points[j][0]-2*cos(theta)), 99), 0), max(min(floor(M.points[j][1]-2*sin(theta)), 99), 0)),
             (max(min(ceil(M.points[j][0]+2*cos(theta)), 99), 0), max(min(ceil(M.points[j][1]+2*sin(theta)), 99), 0))]
             po = M.rasterization(pt, i, j)
-            # reward = 0
-            # for p in po:
-                # reward += 1/(1+exp(-7.5*M.map[p[0]][p[1]]/1+3))
-            # M.edge_reward.append(reward)
             M.reward_calc(po)
     ras_max = 0
     for i in range(len(M.edge_raster)):
         temp = 0
         for j in range(len(M.edge_raster[i])):
-            # temp += 1/(1+exp(-7.5*M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]/1+3))
-            # temp+= exp(1*M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]])
             temp+= M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]
         if temp>ras_max:
             ras_max = temp
@@ -50,14 +42,11 @@ def initialization(n):
     max_length = max(M.edge_length)
     for i in range(len(M.edge_reward)):
         M.edge_reward[i] = M.edge_reward[i]*10/ras_max
-        # M.edge_reward[i] = 1000/(1+exp(-7.5*M.edge_reward[i]/1000+3))
         M.edge_length[i] = M.edge_length[i]*10/max_length
     for i in range(M.MAP_SIZE[0]):
         for j in range(M.MAP_SIZE[1]):
-            # M.map[i][j] = M.map[i][j]*1000/(ras_max*max(M.edge_reward))
-            # M.map[i][j] = 1000/(ras_max*(1+exp(-7.5*M.map[i][j]/1+3)))
             M.map[i][j] = M.map[i][j]*10/ras_max
-            # M.map[i][j] = exp(1*M.map[i][j])*1000/ras_max
+    max_reward = max(M.edge_reward)
     max_length = max(M.edge_length)
     min_length = min(M.edge_length)
     l_temp = 0
@@ -90,8 +79,8 @@ def best_edge_gain_baseline(e, H, reward, edges, raster, length, tour_points, cu
     temp2 = (max_length-length[e])
     mu += temp
     mu_budget += temp2
-    var = (1.5*mu)**2
-    var_budget += (1.5*mu_budget)**2
+    var += (3*temp)**2
+    var_budget += (3*temp2)**2
     HfUe = (1-beta)*mu + beta*mu_budget
     H_marginal = HfUe - H
     return H_marginal, HfUe, mu, var, mu_budget, var_budget, pt
@@ -152,7 +141,7 @@ def get_best_greedy_path_baseline(M, beta, n, max_reward, min_reward, max_length
     return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, tour_points
 
 def record_results(beta_list, M, max_reward, min_reward, max_length, min_length, n):
-    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline5.csv'
+    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline_final_v2_5.csv'
     file = open(file_name, 'w')
     for i in range(len(M.all_tour)):
         print(i)
@@ -164,23 +153,6 @@ def record_results(beta_list, M, max_reward, min_reward, max_length, min_length,
         var_budget = M.gaussian_info[i][3]
         print(mu, var, mu_budget, var_budget)
         beta = beta_list[i%len(beta_list)]
-        # rew = truncnorm.rvs((0-mu)/sqrt(var), (n*max_reward-mu)/sqrt(var), size=10000)*sqrt(var)+mu
-        # if max(2*mu-n*max_reward, 0)-mu >= min(n*max_reward, 2*mu)-mu:
-        #     rew = [mu]*100
-        # le = truncnorm.rvs((0-mu_budget)/sqrt(var_budget), (n*max_length-mu_budget)/sqrt(var_budget), size=10000)*sqrt(var_budget)+mu_budget
-        # for k in range(10000):
-        #     # rew = np.random.normal(mu, sqrt(var))
-        #     le = np.random.normal(mu_budget, sqrt(var_budget))
-        #     while True:
-        #         if le<0 or le>n*max_length:
-        #             le = np.random.normal(mu_budget, sqrt(var_budget))
-        #         else:
-        #             break
-            # while True:
-            #     if rew<0 or rew>n*max_reward:
-            #         rew = np.random.normal(mu, sqrt(var))
-            #     else:
-            #         break
         for i in range(10000):
             rew = np.random.normal(mu, sqrt(var))+100
             le = np.random.normal(mu_budget, sqrt(var_budget))+100
@@ -229,16 +201,10 @@ def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_me
     temp2 = (max_length-length[e])
     mu += temp
     mu_budget += temp2
-    var = (1.5*mu)**2
-    # print(var)
-    var_budget += (1.5*mu_budget)**2
+    var += (3*temp)**2
+    var_budget += (3*temp2)**2
     expectationfUe = 0
     f = (1-beta)*mu + beta*mu_budget
-    # print("AA", ((max(2*mu-(len(M.tour)+1)*max_reward, 0)), (min((len(M.tour)+1)*max_reward, 2*mu))))
-    # if max(2*mu-(len(M.tour)+1)*max_reward, 0)-mu >= min((len(M.tour)+1)*max_reward, 2*mu)-mu:
-    #     rew = [mu]*100
-    # rew = truncnorm.rvs((0-mu)/sqrt(var), ((len(M.tour)+1)*max_reward-mu)/sqrt(var), size=100)*sqrt(var)+mu
-    # le = truncnorm.rvs((0-mu_budget)/sqrt(var_budget+0.0001), ((len(M.tour)+1)*max_length-mu_budget)/sqrt(var_budget+0.0001), size=100)*sqrt(var_budget)+mu_budget
     for i in range(100):
         rew = np.random.normal(mu, sqrt(var))+100
         le = np.random.normal(mu_budget, sqrt(var_budget))+100
@@ -325,7 +291,7 @@ def main():
     min_reward = min(M.edge_reward)
     max_length = max(M.edge_length)
     min_length = min(M.edge_length)
-    for alp in [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for alp in [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         M.alpha = alp
         beta_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         tour_best = []

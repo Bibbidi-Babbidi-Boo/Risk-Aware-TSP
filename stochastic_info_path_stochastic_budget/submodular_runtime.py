@@ -188,13 +188,91 @@ def get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_len
         Hm.pop(0)
     return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, mean_info, tour_points
 
+def best_edge_gain_baseline(e, H, reward, edges, raster, length, tour_points, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, M, beta, max_reward, max_length, min_length):
+    pt = list(tour_points)
+    mu = current_mean_reward
+    var =  current_var_reward
+    mu_budget = current_mean_budget
+    var_budget = current_var_budget
+    temp = 0
+    new_pt = raster[e]
+    pos = []
+    done_indices = []
+    for i in range(len(new_pt)):
+        if new_pt[i] not in pt:
+            temp += M.map[new_pt[i][0]][new_pt[i][1]]
+            pt.append(new_pt[i])
+    temp2 = (max_length-length[e])
+    mu += temp
+    mu_budget += temp2
+    var += (3*temp)**2
+    var_budget += (3*temp2)**2
+    HfUe = (1-beta)*mu + beta*mu_budget
+    H_marginal = HfUe - H
+    return H_marginal, HfUe, mu, var, mu_budget, var_budget, pt
+
+def get_best_greedy_path_baseline(M, beta, n, max_reward, min_reward, max_length, min_length):
+    H = 0
+    edges = list(M.edges)
+    reward = list(M.edge_reward)
+    raster = list(M.edge_raster)
+    length = list(M.edge_length)
+    position_holder_pop = 1000
+    M.tour = []
+    tour_points = []
+    subtour = [0]*n
+    ret = True
+    current_mean_reward = 0
+    current_var_reward = 0
+    current_mean_budget = 0
+    current_var_budget = 0
+    while edges!=[] and len(M.tour)<n:
+        if ret == True:
+            Hm = []
+            for e in range(len(edges)):
+                H_marginal, HfUe, mu, var, mu_budget, var_budget, pt = best_edge_gain_baseline(e, H, reward, edges, raster, length, tour_points, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, M, beta, max_reward, max_length, min_length)
+                Hm.append([H_marginal, HfUe, e, mu, var, mu_budget, var_budget, pt])
+            Hm.sort(reverse=1)
+        else:
+            for pos_iter in range(len(Hm)):
+                if Hm[pos_iter][2] >= position_holder_pop:
+                    Hm[pos_iter][2] -= 1
+        new_edge = Hm[0][2]
+        if subtour[edges[new_edge][0]]<2 and subtour[edges[new_edge][1]]<2:
+            M.tour.append(edges[new_edge])
+            subtour[edges[new_edge][0]]+=1
+            subtour[edges[new_edge][1]]+=1
+            ret = M.DFS()
+            if ret == False and len(M.tour)<n:
+                M.tour.pop(len(M.tour)-1)
+                subtour[edges[new_edge][0]]-=1
+                subtour[edges[new_edge][1]]-=1
+                position_holder_pop = new_edge
+            elif ret == True or len(M.tour) == n:
+                H_marginal = Hm[0][0]
+                Hf = Hm[0][1]
+                current_mean_reward = Hm[0][3]
+                current_var_reward = Hm[0][4]
+                current_mean_budget = Hm[0][5]
+                current_var_budget = Hm[0][6]
+                tour_points = list(Hm[0][7])
+        else:
+            ret = False
+            position_holder_pop = new_edge
+        edges.pop(new_edge)
+        reward.pop(new_edge)
+        raster.pop(new_edge)
+        length.pop(new_edge)
+        Hm.pop(0)
+    return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, tour_points
+
 def main():
-    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/runtime.csv'
+    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/runtime4.csv'
     file = open(file_name, 'w')
     alpha_val = [0.1, 0.5, 0.9]
-    for n in np.arange(4,10,1):
+    for n in np.arange(8,11,1):
         for i in range(100):
-            print("start", n)
+            print("start", n, i)
             M = initialization(n)
             max_reward = max(M.edge_reward)
             min_reward = min(M.edge_reward)
@@ -204,26 +282,27 @@ def main():
             tau_prev = 0
             for alp in alpha_val:
                 M.alpha = alp
-                tour_best = []
-                all_points = []
-                best_info = []
                 beta = int.from_bytes(os.urandom(8), byteorder="big") / ((1 << 64) - 1)
                 H_max = -100000
                 for tau in np.arange(50, 200, 1):
                     M.tau = float(tau)
                     Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, mean_info, tour_points = get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_length)
-                    print(Hf, M.tau)
                     if Hf>H_max:
                         tau_prev = M.tau
-                        best_info = list(mean_info)
-                        all_points = list(tour_points)
                         H_max = Hf
-                        tour_best = list(M.tour)
                     if H_max-Hf>H_max/2:
                         break
                 end = time.time()
                 print("end")
                 record_results(start, end, file)
+            print("Start1")
+            start = time.time()
+            H_max = -100000
+            Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, tour_points = get_best_greedy_path_baseline(M, beta, n, max_reward, min_reward, max_length, min_length)
+            if Hf>H_max:
+                H_max = Hf
+            end = time.time()
+            record_results(start, end, file)
         file.write('\n')
 
 if __name__ == '__main__':

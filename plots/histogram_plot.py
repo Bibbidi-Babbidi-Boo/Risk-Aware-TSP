@@ -1,14 +1,11 @@
 import matplotlib
 from mpl_toolkits import mplot3d
 import csv
-# import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from scipy.stats import norm
-
-matplotlib.rcParams['mathtext.fontset'] = 'stix'
-matplotlib.rcParams['font.family'] = 'STIXGeneral'
+from matplotlib import rc
 
 tau = []
 H1 = []
@@ -135,7 +132,7 @@ H121 = []
 H122 = []
 temp = ''
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline4.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline_final_v2_1.csv', 'r') as file:
     reader = csv.reader(file)
     c = 0
     for row in reader:
@@ -396,113 +393,101 @@ with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_bud
                         H121.append(temp)
                     temp = ''
 
+matplotlib.rcParams['mathtext.fontset'] = 'dejavuserif'
+matplotlib.rcParams['font.size'] = '13'
+rc('text', usetex=True)
+
 fig, ax = plt.subplots()
-xs = np.linspace(50, 450)
+xs = np.linspace(150, 350)
 
-print(len(H1))
-
-# mean,std=norm.fit(H1)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.005')
-#
-# mean,std=norm.fit(H2)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.01')
-#
-# mean,std=norm.fit(H3)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.05')
-#
-# mean,std=norm.fit(H4)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.1')
-
-# mean,std=norm.fit(H5)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.5')
-#
-# mean,std=norm.fit(H6)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=1')
-
-# mean,std=norm.fit(H7)
-# y = norm.pdf(xs, mean, std)
-# plt.plot(xs, y,label='beta=0.9')
-
-
-
-
-# density = gaussian_kde(H11)
-# density._compute_covariance()
-# ax.plot(xs,density(xs),label='beta=0.01')
+density = gaussian_kde(H11)
+density._compute_covariance()
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.01$", color='tab:blue')
+m = max(density(xs))
 
 density = gaussian_kde(H22)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.1')
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.1$", color='tab:orange')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
 
-density = gaussian_kde(H33)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.2')
+# density = gaussian_kde(H113)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.2$", color='tab:orange')
+# m1 = max(density(xs))
+# if m1>m:
+#     m = m1
+
 
 density = gaussian_kde(H44)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.3')
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.3$", color='tab:green')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
 
-#
-density = gaussian_kde(H55)
-density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.4')
-#
+# density = gaussian_kde(H115)
+# density._compute_covariance()
+# ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.4$", color='tab:green')
+# m1 = max(density(xs))
+# if m1>m:
+#     m = m1
+
+
 density = gaussian_kde(H66)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.5')
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.5$", color='tab:red')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
 
-# density = gaussian_kde(H77)
+# density = gaussian_kde(H117)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='beta=0.6')
-#
-# density = gaussian_kde(H88)
-# density._compute_covariance()
-# ax.plot(xs,density(xs),label='beta=0.7')
-#
-density = gaussian_kde(H99)
+# ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.6$", color='tab:red')
+# m1 = max(density(xs))
+# if m1>m:
+#     m = m1
+
+density = gaussian_kde(H88)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=0.8')
-#
-# density = gaussian_kde(H110)
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.7$", color='tab:purple')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
+
+# density = gaussian_kde(H119)
 # density._compute_covariance()
-# ax.plot(xs,density(xs),label='beta=0.9')
+# ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.8$", color='tab:purple')
+# m1 = max(density(xs))
+# if m1>m:
+#     m = m1
+
+density = gaussian_kde(H110)
+density._compute_covariance()
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.9$", color='tab:brown')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
 
 density = gaussian_kde(H121)
 density._compute_covariance()
-ax.plot(xs,density(xs),label='beta=1')
+ax.plot(xs,density(xs),label=r"\boldmath$\alpha=1$", color='tab:pink')
+m1 = max(density(xs))
+if m1>m:
+    m = m1
 
 
+ax.set_xlabel(r"Value of the utility function $f(\mathcal{S}^{G}, y)$", fontsize=15)
+ax.set_ylabel(r"Probability distribution of $f(\mathcal{S}^{G}, y)$", fontsize=15)#, fontsize=14
 
-# plt.xlim([200, 400])
-# plt.ylim([0, 0.04])
-# ax.hist(H1, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.01')
-# ax.hist(H2, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.1')
-# ax.hist(H3, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.3')
-# ax.hist(H4, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.6')
-# ax.hist(H5, bins='auto', histtype=u'step', density=True, label = 'alpaha=0.9')
-# ax.hist(H6, bins='auto', histtype=u'step', density=True, label = 'alpaha=1')
-
-ax.set_xlabel(r"Value of the utility function $f(\mathit{S^{B}}, y)$", fontsize=14)
-ax.set_ylabel(r"Probability distribution of $f(\mathit{S^{B}}, y)$", fontsize=14)
+x_mean = np.array([235.63740221920042, 231.46888528639977, 241.3995563342995, 243.43020452579972, 247.49111471049986, 250.15814444900045, 246.94589982730034])
+x_std = np.array([39.836, 38.866, 44.582, 49.2777, 51.120, 53.449, 54.0302])
+y_mean = np.array([m+0.007, m+0.006, m+0.005, m+0.004, m+0.003, m+0.002, m+0.001])
+colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink']
+for i in range(len(colors)):
+    ax.errorbar(x_mean[i], y_mean[i], xerr=x_std[i], fmt='o', capsize=4, markersize=4, color = colors[i])
+fig.subplots_adjust(left=0.15, bottom=0.14, top=0.986, right=0.986, wspace=None, hspace=None)
 
 plt.legend()
-plt.show()
-
-# data = pd.read_csv('risk_distance_H_v_tau.csv', sep=';',header=None, index_col =0)
-# data = pd.DataFrame(data=data)
-# print(data)
-# # data=data.astype(float).transpose
-# # # print(data)
-# #
-# data.plot(kind='bar')
-# # plt.ylabel('Frequency')
-# # plt.xlabel('Words')
-# # plt.title('Title')
-
 plt.show()

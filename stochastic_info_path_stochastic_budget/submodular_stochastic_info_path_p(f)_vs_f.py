@@ -147,7 +147,7 @@ def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_me
     mu_budget += temp2
     var = (1.5*mu)**2
     # print(var)
-    var_budget += (1.5*mu_budget)**2
+    var_budget = (1.5*mu_budget)**2
     expectationfUe = 0
     f = (1-beta)*mu + beta*mu_budget
     # print("AA", ((max(2*mu-(len(M.tour)+1)*max_reward, 0)), (min((len(M.tour)+1)*max_reward, 2*mu))))

@@ -135,7 +135,7 @@ H121 = []
 H122 = []
 temp = ''
 
-with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline4.csv', 'r') as file:
+with open('/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline_final_v2_1.csv', 'r') as file:
     reader = csv.reader(file)
     c = 0
     for row in reader:
