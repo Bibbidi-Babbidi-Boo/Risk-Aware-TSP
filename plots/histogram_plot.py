@@ -400,12 +400,12 @@ rc('text', usetex=True)
 fig, ax = plt.subplots()
 xs = np.linspace(150, 350)
 
-density = gaussian_kde(H11)
+density = gaussian_kde(H1)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.01$", color='tab:blue')
 m = max(density(xs))
 
-density = gaussian_kde(H22)
+density = gaussian_kde(H12)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.1$", color='tab:orange')
 m1 = max(density(xs))
@@ -420,7 +420,7 @@ if m1>m:
 #     m = m1
 
 
-density = gaussian_kde(H44)
+density = gaussian_kde(H34)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.3$", color='tab:green')
 m1 = max(density(xs))
@@ -435,7 +435,7 @@ if m1>m:
 #     m = m1
 
 
-density = gaussian_kde(H66)
+density = gaussian_kde(H56)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.5$", color='tab:red')
 m1 = max(density(xs))
@@ -449,7 +449,7 @@ if m1>m:
 # if m1>m:
 #     m = m1
 
-density = gaussian_kde(H88)
+density = gaussian_kde(H78)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.7$", color='tab:purple')
 m1 = max(density(xs))
@@ -463,14 +463,14 @@ if m1>m:
 # if m1>m:
 #     m = m1
 
-density = gaussian_kde(H110)
+density = gaussian_kde(H100)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=0.9$", color='tab:brown')
 m1 = max(density(xs))
 if m1>m:
     m = m1
 
-density = gaussian_kde(H121)
+density = gaussian_kde(H111)
 density._compute_covariance()
 ax.plot(xs,density(xs),label=r"\boldmath$\alpha=1$", color='tab:pink')
 m1 = max(density(xs))
@@ -481,8 +481,8 @@ if m1>m:
 ax.set_xlabel(r"Value of the utility function $f(\mathcal{S}^{G}, y)$", fontsize=15)
 ax.set_ylabel(r"Probability distribution of $f(\mathcal{S}^{G}, y)$", fontsize=15)#, fontsize=14
 
-x_mean = np.array([235.63740221920042, 231.46888528639977, 241.3995563342995, 243.43020452579972, 247.49111471049986, 250.15814444900045, 246.94589982730034])
-x_std = np.array([39.836, 38.866, 44.582, 49.2777, 51.120, 53.449, 54.0302])
+x_mean = np.array([221.73705764979982, 221.65506884210123, 238.8638478636004, 241.61082341610057, 243.3101345237997, 245.24792546629925, 243.61691167750018])
+x_std = np.array([25.255, 25, 45.985, 47.813, 49.919, 53.386, 51.7017])
 y_mean = np.array([m+0.007, m+0.006, m+0.005, m+0.004, m+0.003, m+0.002, m+0.001])
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink']
 for i in range(len(colors)):

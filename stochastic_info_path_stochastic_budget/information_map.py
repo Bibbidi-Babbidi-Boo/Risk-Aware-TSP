@@ -1,3 +1,9 @@
+################################################################################
+
+# This script contains code to generate the map M for the simulations
+
+################################################################################
+
 #!/usr/bin/env python
 import time
 import math
@@ -12,8 +18,16 @@ from PIL import Image, ImageDraw
 from matplotlib.path import Path
 
 class Information_Map:
+    """
+    Class to generate the map
+    """
+
     def __init__(self, tau, alpha):
-        self.MAP_SIZE = (100, 100)
+        """
+        Initialization of map size, num of distributions, and all other values as 0/[]
+        """
+
+        self.MAP_SIZE = (2000, 2000)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
         self.NUM_DISTRIBUTIONS = 20
@@ -32,6 +46,16 @@ class Information_Map:
         self.gaussian_info = []
 
     def rasterization(self, poly, n1, n2):
+        """
+        To rasterize line between two points into discrete set of points
+        Refer Bresenham's algorithm
+
+        Input: Two end points n1, n2
+
+        Output: Set of points forming the approximate line between the two end
+        points
+        """
+
         img = Image.new('1', (self.MAP_SIZE[1], self.MAP_SIZE[0]), 0)
         ImageDraw.Draw(img).polygon(poly, outline=1, fill=1)
         mask = numpy.array(img)
@@ -49,6 +73,10 @@ class Information_Map:
         return temp
 
     def rand_vert_init(self, n):
+        """
+        Randomly initialize n vertices on the map
+        """
+
         while len(self.points) < n:
             x = random.randint(0,self.MAP_SIZE[0]-1)
             y = random.randint(0,self.MAP_SIZE[1]-1)
@@ -64,10 +92,15 @@ class Information_Map:
                 pass
 
     def bivariateGaussianMatrix(self, pos):
-        gaussian_mean = [min(80, max(20, self.MAP_SIZE[0]*np.random.rand())), min(80, max(20, self.MAP_SIZE[1]*np.random.rand()))]
+        """
+        Initialize the gaussian distributions on the map to show distribution of
+        reward
+        """
+
+        gaussian_mean = [min(self.MAP_SIZE[0]-5, max(5, self.MAP_SIZE[0]*np.random.rand())), min(self.MAP_SIZE[1]-5, max(5, self.MAP_SIZE[1]*np.random.rand()))]
         gaussian_var = np.zeros(2)
-        gaussian_var[0] = self.variance_scale[0]*random.sample(range(20, 50), 1)[0]/60
-        gaussian_var[1] = self.variance_scale[1]*random.sample(range(20, 50), 1)[0]/60
+        gaussian_var[0] = self.variance_scale[0]*random.sample(range(int(20*self.MAP_SIZE[0]/100), int(50*self.MAP_SIZE[0]/100)), 1)[0]/60
+        gaussian_var[1] = self.variance_scale[1]*random.sample(range(int(20*self.MAP_SIZE[1]/100), int(50*self.MAP_SIZE[1]/100)), 1)[0]/60
         SigmaX = np.sqrt(gaussian_var[0])
         SigmaY = np.sqrt(gaussian_var[1])
         for i in range(self.MAP_SIZE[0]):
@@ -75,17 +108,22 @@ class Information_Map:
                 self.map[i][j] += self.MAX_VAL[pos]*(1/(2*np.pi*SigmaX*SigmaY))*exp(-((i-gaussian_mean[0])**2)/(2*SigmaX**2) -((j-gaussian_mean[1])**2)/(2*SigmaY**2))
 
     def createInformation(self):
-            for i in range(self.NUM_DISTRIBUTIONS):
-                self.bivariateGaussianMatrix(i)
-            max_value = max(list(map(max, self.map)))
-            # for i in range(self.MAP_SIZE[0]):
-            #     for j in range(self.MAP_SIZE[1]):
-            #         self.map[i][j] /= max_value
+        """
+        Sum the bivariate gaussians to form map
+        """
+        for i in range(self.NUM_DISTRIBUTIONS):
+            self.bivariateGaussianMatrix(i)
+            print(i)
+        max_value = max(list(map(max, self.map)))
 
     def plot(self, edge_points = [], array = []):
+        """
+        Plot map an the tours formed
+        """
+
         fig, ax = plt.subplots()
-        ax.set_xlim(0, 99)
-        ax.set_ylim(0, 99)
+        ax.set_xlim(0, self.MAP_SIZE[0]-1)
+        ax.set_ylim(0, self.MAP_SIZE[1]-1)
         for p in edge_points:
             plt.scatter(p[0], p[1], s=3, color='k')
         for i in range(len(self.points)):
@@ -135,43 +173,26 @@ class Information_Map:
         return points
 
     def reward_calc(self, points):
+        """
+        Calculating reward for given edge
+        """
+
         reward = 0
         for p in points:
             reward += self.map[p[0]][p[1]]
         self.edge_reward.append(reward)
 
     def length_calc(self, points):
+        """
+        Calculating length of given edge
+        """
+
         self.edge_length.append(len(points))
-        # self.edge_failiure.append((reward/2)**2)
-
-
-    #
-    # def f_calc(self):
-    #     expect = []
-    #     posn = []
-    #     for i in range(len(self.tour)):
-    #         for j in range(len(self.edges)):
-    #             if self.edges[j][0] == self.tour[i][0] and self.edges[j][1] == self.tour[i][1]:
-    #                 posn.append(j)
-    #                 break
-    #     for j in range(1000):
-    #         f = 0
-    #         for i in range(len(self.tour)):
-    #             mu = self.edge_reward[posn[i]]
-    #             sigma =  self.edge_failiure[posn[i]]
-    #             # sample = -100
-    #             # sample = np.random.normal(mu, sigma)
-    #             # if sample<0:
-    #             #     sample = 0
-    #             while True:
-    #                 sample = np.random.normal(mu, sigma)
-    #                 if 0<sample<2*mu:
-    #                     break
-    #             f += sample
-    #         expect.append(f)
-    #     return expect
 
     def DFS(self):
+        """
+        Depth first search to check for subtours and degree invalidificaiton
+        """
         visited = [False]*len(self.points)
         path = list(self.tour)
         edge = [-100, -100]
@@ -187,6 +208,9 @@ class Information_Map:
         return ret
 
     def recursive_next(self, edge, path, visited, start, vertex1, vertex2):
+        """
+        To recursively run the search algorithm for subtour finding
+        """
         visited[vertex1] = True
         flag = 0
         path.remove(edge)

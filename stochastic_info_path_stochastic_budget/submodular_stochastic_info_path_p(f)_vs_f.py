@@ -1,3 +1,10 @@
+################################################################################
+
+# This file contains the code used for comparing path selection performances of
+# our algorithm for different values of alpha, beta, tau
+
+################################################################################
+
 import random
 import numpy as np
 from math import *
@@ -7,13 +14,21 @@ import numpy as np
 import statistics
 from information_map import Information_Map
 from scipy.stats import truncnorm
+import os
 
 def initialization(n):
+    """
+    Input: number of nodes n
+    Output: The Map M, position of points on M, edges, reward and length of edges on the map
+    """
+
     M = Information_Map(0.0, 0.0)
     M.createInformation()
     M.rand_vert_init(n)
     # M.plot()
+    # exit()
     for i in range(n):
+        print(i)
         for j in range(i+1,n):
             M.edges.append([i, j])
             if (M.points[j][0]-M.points[i][0]) == 0:
@@ -25,24 +40,17 @@ def initialization(n):
                 else:
                     theta = atan(-1/slope)
             po = M.drawLine(M.points[i], M.points[j])
-            M.edge_length.append(exp(0.02*len(po)))
-            # M.length_calc(po)
-            pt = [(max(min(ceil(M.points[i][0]+0*cos(theta)), 99), 0), max(min(ceil(M.points[i][1]+0*sin(theta)), 99), 0)),
-            (max(min(floor(M.points[i][0]-0*cos(theta)), 99), 0), max(min(floor(M.points[i][1]-0*sin(theta)), 99), 0)),
-            (max(min(floor(M.points[j][0]-0*cos(theta)), 99), 0), max(min(floor(M.points[j][1]-0*sin(theta)), 99), 0)),
-            (max(min(ceil(M.points[j][0]+0*cos(theta)), 99), 0), max(min(ceil(M.points[j][1]+0*sin(theta)), 99), 0))]
+            M.length_calc(po)
+            pt = [(max(min(ceil(M.points[i][0]+2*cos(theta)), M.MAP_SIZE[0]-1), 0), max(min(ceil(M.points[i][1]+2*sin(theta)), M.MAP_SIZE[1]-1), 0)),
+            (max(min(floor(M.points[i][0]-2*cos(theta)), M.MAP_SIZE[0]-1), 0), max(min(floor(M.points[i][1]-2*sin(theta)), M.MAP_SIZE[1]-1), 0)),
+            (max(min(floor(M.points[j][0]-2*cos(theta)), M.MAP_SIZE[0]-1), 0), max(min(floor(M.points[j][1]-2*sin(theta)), M.MAP_SIZE[1]-1), 0)),
+            (max(min(ceil(M.points[j][0]+2*cos(theta)), M.MAP_SIZE[0]-1), 0), max(min(ceil(M.points[j][1]+2*sin(theta)), M.MAP_SIZE[1]-1), 0))]
             po = M.rasterization(pt, i, j)
-            # reward = 0
-            # for p in po:
-                # reward += 1/(1+exp(-7.5*M.map[p[0]][p[1]]/1+3))
-            # M.edge_reward.append(reward)
             M.reward_calc(po)
     ras_max = 0
     for i in range(len(M.edge_raster)):
         temp = 0
         for j in range(len(M.edge_raster[i])):
-            # temp += 1/(1+exp(-7.5*M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]/1+3))
-            # temp+= exp(1*M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]])
             temp+= M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]
         if temp>ras_max:
             ras_max = temp
@@ -50,31 +58,22 @@ def initialization(n):
     max_length = max(M.edge_length)
     for i in range(len(M.edge_reward)):
         M.edge_reward[i] = M.edge_reward[i]*10/ras_max
-        # M.edge_reward[i] = 1000/(1+exp(-7.5*M.edge_reward[i]/1000+3))
         M.edge_length[i] = M.edge_length[i]*10/max_length
     for i in range(M.MAP_SIZE[0]):
         for j in range(M.MAP_SIZE[1]):
-            # M.map[i][j] = M.map[i][j]*1000/(ras_max*max(M.edge_reward))
-            # M.map[i][j] = 1000/(ras_max*(1+exp(-7.5*M.map[i][j]/1+3)))
             M.map[i][j] = M.map[i][j]*10/ras_max
-            # M.map[i][j] = exp(1*M.map[i][j])*1000/ras_max
+    max_reward = max(M.edge_reward)
     max_length = max(M.edge_length)
     min_length = min(M.edge_length)
-    l_temp = 0
-    r_temp = 0
-    for i in range(len(M.edge_raster)):
-        temp = 0
-        l_temp += max_length-M.edge_length[i]
-        r_temp += M.edge_reward[i]
-        for j in range(len(M.edge_raster[i])):
-            temp+= M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]
-        print(temp, M.edge_reward[i], max_length-M.edge_length[i])
-    print("F", r_temp, l_temp)
-    # exit()
+
     return M
 
 def record_results(beta_list, M, max_reward, min_reward, max_length, min_length, n):
-    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/traditional_variance5.csv'
+    """
+    Record the results to a csv file
+    """
+
+    file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/20_points_3.csv'
     file = open(file_name, 'w')
     for i in range(len(M.all_tour)):
         print(i)
@@ -86,23 +85,6 @@ def record_results(beta_list, M, max_reward, min_reward, max_length, min_length,
         var_budget = M.gaussian_info[i][3]
         print(mu, var, mu_budget, var_budget)
         beta = beta_list[i%len(beta_list)]
-        # rew = truncnorm.rvs((0-mu)/sqrt(var), (n*max_reward-mu)/sqrt(var), size=10000)*sqrt(var)+mu
-        # if max(2*mu-n*max_reward, 0)-mu >= min(n*max_reward, 2*mu)-mu:
-        #     rew = [mu]*100
-        # le = truncnorm.rvs((0-mu_budget)/sqrt(var_budget), (n*max_length-mu_budget)/sqrt(var_budget), size=10000)*sqrt(var_budget)+mu_budget
-        # for k in range(10000):
-        #     # rew = np.random.normal(mu, sqrt(var))
-        #     le = np.random.normal(mu_budget, sqrt(var_budget))
-        #     while True:
-        #         if le<0 or le>n*max_length:
-        #             le = np.random.normal(mu_budget, sqrt(var_budget))
-        #         else:
-        #             break
-            # while True:
-            #     if rew<0 or rew>n*max_reward:
-            #         rew = np.random.normal(mu, sqrt(var))
-            #     else:
-            #         break
         for i in range(10000):
             rew = np.random.normal(mu, sqrt(var))+100
             le = np.random.normal(mu_budget, sqrt(var_budget))+100
@@ -122,13 +104,30 @@ def record_results(beta_list, M, max_reward, min_reward, max_length, min_length,
     file.close()
     fig, ax = plt.subplots()
     M.plot()
-    ax.set_xlim(0, 99)
-    ax.set_ylim(0, 99)
+    ax.set_xlim(0, M.MAP_SIZE[0]-1)
+    ax.set_ylim(0, M.MAP_SIZE[1]-1)
     for j in range(len(M.all_tour)):
         M.plot(M.best_points[j], M.all_tour[j])
 
-
 def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, M, beta, max_reward, max_length, min_length):
+    """
+    Find the marginal gains of edge given
+
+    Input: *edge e
+    *current H
+    *list of reward, points seen along each edge (raster), length of edges
+    *already visited points tour_points
+    *curren reward and cost mean and variance
+    *map M
+    *beta
+    *max/min of reward, length
+
+    Output: *H_marginal, H_new (marginal and new aux. function value)
+    *mean/var of reward and length
+    *points visited
+    *util. function mean f
+    """
+
     pt = list(tour_points)
     mu = current_mean_reward
     var =  current_var_reward
@@ -145,16 +144,10 @@ def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_me
     temp2 = (max_length-length[e])
     mu += temp
     mu_budget += temp2
-    var = (1.5*mu)**2
-    # print(var)
-    var_budget = (1.5*mu_budget)**2
+    var = (3*mu)**2
+    var_budget = (3*mu_budget)**2
     expectationfUe = 0
     f = (1-beta)*mu + beta*mu_budget
-    # print("AA", ((max(2*mu-(len(M.tour)+1)*max_reward, 0)), (min((len(M.tour)+1)*max_reward, 2*mu))))
-    # if max(2*mu-(len(M.tour)+1)*max_reward, 0)-mu >= min((len(M.tour)+1)*max_reward, 2*mu)-mu:
-    #     rew = [mu]*100
-    # rew = truncnorm.rvs((0-mu)/sqrt(var), ((len(M.tour)+1)*max_reward-mu)/sqrt(var), size=100)*sqrt(var)+mu
-    # le = truncnorm.rvs((0-mu_budget)/sqrt(var_budget+0.0001), ((len(M.tour)+1)*max_length-mu_budget)/sqrt(var_budget+0.0001), size=100)*sqrt(var_budget)+mu_budget
     for i in range(100):
         rew = np.random.normal(mu, sqrt(var))+100
         le = np.random.normal(mu_budget, sqrt(var_budget))+100
@@ -177,6 +170,20 @@ def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_me
     return H_marginal, HfUe, mu, var, mu_budget, var_budget, pt, f
 
 def get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_length):
+    """
+    Find tour with max. marginal gain
+
+    Input: *map M
+    *beta
+    *no of vertices
+    *max/min of reward and length
+
+    Output: *H
+    *mean/var of reward and length
+    *mean of util function f
+    *points visited
+    """
+
     H_max = -100000
     mean_info = []
     Hf = M.tau-M.tau/M.alpha
@@ -237,21 +244,25 @@ def get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_len
     return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, mean_info, tour_points
 
 def main():
-    n = 8
+    """
+    Main function running the algorithm for every value of alpha, beta, tau given, and finding the runtime
+    """
+
+    n = 20
     M = initialization(n)
     max_reward = max(M.edge_reward)
     min_reward = min(M.edge_reward)
     max_length = max(M.edge_length)
     min_length = min(M.edge_length)
-    for alp in [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for alp in [0.1]:
         M.alpha = alp
-        beta_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        beta_list = [0, 1]
         tour_best = []
         all_points = []
         best_info = []
         for beta in beta_list:
             H_max = -100000
-            for tau in np.arange(0, 5000, 1):
+            for tau in np.arange(0, 10000, 1):
                 M.tau = float(tau)
                 Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, mean_info, tour_points = get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_length)
                 print(Hf, current_mean_reward, current_mean_budget)

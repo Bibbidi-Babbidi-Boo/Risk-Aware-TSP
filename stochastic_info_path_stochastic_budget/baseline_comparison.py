@@ -1,3 +1,11 @@
+################################################################################
+
+# This file contains the code used for comparing path selection performances of
+# our algorithm for different values of alpha, beta, tau compared to the baseline
+
+################################################################################
+
+
 import random
 import numpy as np
 from math import *
@@ -9,6 +17,11 @@ from information_map import Information_Map
 from scipy.stats import truncnorm
 
 def initialization(n):
+    """
+    Input: number of nodes n
+    Output: The Map M, position of points on M, edges, reward and length of edges on the map
+    """
+
     M = Information_Map(0.0, 0.0)
     M.createInformation()
     M.rand_vert_init(n)
@@ -49,20 +62,26 @@ def initialization(n):
     max_reward = max(M.edge_reward)
     max_length = max(M.edge_length)
     min_length = min(M.edge_length)
-    l_temp = 0
-    r_temp = 0
-    for i in range(len(M.edge_raster)):
-        temp = 0
-        l_temp += max_length-M.edge_length[i]
-        r_temp += M.edge_reward[i]
-        for j in range(len(M.edge_raster[i])):
-            temp+= M.map[M.edge_raster[i][j][0]][M.edge_raster[i][j][1]]
-        print(temp, M.edge_reward[i], max_length-M.edge_length[i])
-    print("F", r_temp, l_temp)
-    # exit()
     return M
 
 def best_edge_gain_baseline(e, H, reward, edges, raster, length, tour_points, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, M, beta, max_reward, max_length, min_length):
+    """
+    Find the marginal gains of edge given for the baseline algorithm
+
+    Input: *edge e
+    *current H
+    *list of reward, points seen along each edge (raster), length of edges
+    *already visited points tour_points
+    *curren reward and cost mean and variance
+    *map M
+    *beta
+    *max/min of reward, length
+
+    Output: *H_marginal, H_new (marginal and new aux. function value)
+    *mean/var of reward and length
+    *points visited
+    """
+
     pt = list(tour_points)
     mu = current_mean_reward
     var =  current_var_reward
@@ -86,6 +105,20 @@ def best_edge_gain_baseline(e, H, reward, edges, raster, length, tour_points, cu
     return H_marginal, HfUe, mu, var, mu_budget, var_budget, pt
 
 def get_best_greedy_path_baseline(M, beta, n, max_reward, min_reward, max_length, min_length):
+    """
+    Find tour with max. marginal gain baseline
+
+    Input: *map M
+    *beta
+    *no of vertices
+    *max/min of reward and length
+
+    Output: *H
+    *mean/var of reward and length
+    *mean of util function f
+    *points visited
+    """
+
     H = 0
     edges = list(M.edges)
     reward = list(M.edge_reward)
@@ -141,6 +174,10 @@ def get_best_greedy_path_baseline(M, beta, n, max_reward, min_reward, max_length
     return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, tour_points
 
 def record_results(beta_list, M, max_reward, min_reward, max_length, min_length, n):
+    """
+    Record the results to a csv file
+    """
+
     file_name = '/home/rishab/Risk-Aware-TSP/plots/stochastic_info_path_stochastic_budget/submodular_vs_baseline_final_v2_5.csv'
     file = open(file_name, 'w')
     for i in range(len(M.all_tour)):
@@ -185,6 +222,24 @@ def record_results(beta_list, M, max_reward, min_reward, max_length, min_length,
 
 
 def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, M, beta, max_reward, max_length, min_length):
+    """
+    Find the marginal gains of edge given
+
+    Input: *edge e
+    *current H
+    *list of reward, points seen along each edge (raster), length of edges
+    *already visited points tour_points
+    *curren reward and cost mean and variance
+    *map M
+    *beta
+    *max/min of reward, length
+
+    Output: *H_marginal, H_new (marginal and new aux. function value)
+    *mean/var of reward and length
+    *points visited
+    *util. function mean f
+    """
+
     pt = list(tour_points)
     mu = current_mean_reward
     var =  current_var_reward
@@ -227,6 +282,20 @@ def best_edge_gain(e, Hf, reward, edges, raster, length, tour_points, current_me
     return H_marginal, HfUe, mu, var, mu_budget, var_budget, pt, f
 
 def get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_length):
+    """
+    Find tour with max. marginal gain
+
+    Input: *map M
+    *beta
+    *no of vertices
+    *max/min of reward and length
+
+    Output: *H
+    *mean/var of reward and length
+    *mean of util function f
+    *points visited
+    """
+
     H_max = -100000
     Hf = M.tau-M.tau/M.alpha
     edges = list(M.edges)
@@ -285,6 +354,10 @@ def get_best_greedy_path(M, beta, n, max_reward, min_reward, max_length, min_len
     return Hf, current_mean_reward, current_var_reward, current_mean_budget, current_var_budget, tour_points
 
 def main():
+    """
+    Main function running the algorithm for every value of alpha, beta, tau given, and finding the runtime
+    """
+
     n = 8
     M = initialization(n)
     max_reward = max(M.edge_reward)
