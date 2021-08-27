@@ -27,11 +27,11 @@ class Information_Map:
         Initialization of map size, num of distributions, and all other values as 0/[]
         """
 
-        self.MAP_SIZE = (2000, 2000)
+        self.MAP_SIZE = (1000, 1000)
         self.map = np.zeros((self.MAP_SIZE[0], self.MAP_SIZE[1]))
         self.variance_scale = [self.MAP_SIZE[0], self.MAP_SIZE[1]]
-        self.NUM_DISTRIBUTIONS = 20
-        self.MAX_VAL = random.sample(range(800, 1000), self.NUM_DISTRIBUTIONS)
+        self.NUM_DISTRIBUTIONS = 5
+        self.MAX_VAL = random.sample(range(200, 500), self.NUM_DISTRIBUTIONS)
         self.points = []
         self.edges = []
         self.edge_reward = []
@@ -84,7 +84,7 @@ class Information_Map:
             count = 0
             if p not in self.points:
                 for point in self.points:
-                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>8+3*len(self.points):
+                    if sqrt((point[0]-p[0])**2 + (point[1]-p[1])**2)>1:#8+3*len(self.points):
                         count +=1
             if count == len(self.points):
                 self.points.append(p)
